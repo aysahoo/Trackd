@@ -15,6 +15,20 @@
       "when": 1766398719386,
       "tag": "0001_goofy_brood",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766481486806,
+      "tag": "0002_short_electro",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1766483009393,
+      "tag": "0003_easy_maggott",
+      "breakpoints": true
     }
   ]
 }

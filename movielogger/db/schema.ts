@@ -103,11 +103,29 @@ export const watchItem = pgTable(
   ],
 );
 
-export const userRelations = relations(user, ({ many }) => ({
-  sessions: many(session),
-  accounts: many(account),
-  watchItems: many(watchItem),
-}));
+export const friend = pgTable(
+  "friend",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    friendId: text("friend_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("pending"), // pending, accepted
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("friend_user_idx").on(table.userId),
+    index("friend_friend_idx").on(table.friendId),
+  ],
+);
+
+
 
 export const sessionRelations = relations(session, ({ one }) => ({
   user: one(user, {
@@ -127,5 +145,73 @@ export const watchItemRelations = relations(watchItem, ({ one }) => ({
   user: one(user, {
     fields: [watchItem.userId],
     references: [user.id],
+  }),
+}));
+
+export const friendRelations = relations(friend, ({ one }) => ({
+  initiator: one(user, {
+    fields: [friend.userId],
+    references: [user.id],
+    relationName: "friends_initiated",
+  }),
+  recipient: one(user, {
+    fields: [friend.friendId],
+    references: [user.id],
+    relationName: "friends_received",
+  }),
+}));
+
+export const suggestion = pgTable(
+  "suggestion",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    friendId: text("friend_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+
+    tmdbId: text("tmdb_id").notNull(),
+    mediaType: text("media_type").notNull(),
+
+    title: text("title").notNull(),
+    year: text("year"),
+    poster: text("poster"),
+
+    status: text("status").default("pending"), // pending, accepted, dismissed
+
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("suggestion_user_idx").on(table.userId),
+    index("suggestion_friend_idx").on(table.friendId),
+  ],
+);
+
+export const userRelations = relations(user, ({ many }) => ({
+  sessions: many(session),
+  accounts: many(account),
+  watchItems: many(watchItem),
+  friendsInitiated: many(friend, { relationName: "friends_initiated" }),
+  friendsReceived: many(friend, { relationName: "friends_received" }),
+  suggestionsReceived: many(suggestion, { relationName: "suggestions_received" }),
+  suggestionsSent: many(suggestion, { relationName: "suggestions_sent" }),
+}));
+
+export const suggestionRelations = relations(suggestion, ({ one }) => ({
+  recipient: one(user, {
+    fields: [suggestion.userId],
+    references: [user.id],
+    relationName: "suggestions_received",
+  }),
+  sender: one(user, {
+    fields: [suggestion.friendId],
+    references: [user.id],
+    relationName: "suggestions_sent",
   }),
 }));
