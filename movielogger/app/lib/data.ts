@@ -1,4 +1,4 @@
-export type MediaType = 'Movie' | 'Web Series' | 'Anime';
+export type MediaType = 'Movie' | 'TV shows' | 'Anime';
 
 export interface Movie {
   id: string;

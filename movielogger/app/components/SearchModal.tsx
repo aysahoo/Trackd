@@ -68,7 +68,7 @@ export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps
       />
       
       <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[101] w-full max-w-md px-4 transition-all duration-300 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
-        <div className="relative w-full bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md squircle-mask squircle-3xl flex flex-col-reverse">
+        <div className="relative w-full bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md squircle-mask squircle-3xl flex flex-col-reverse">
           
           {/* Input Section (at bottom) */}
           <div className="flex items-center gap-3 p-4 shrink-0">
@@ -76,7 +76,7 @@ export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps
             <input
               ref={inputRef}
               type="text"
-              placeholder="Search movie, series, anime to add..."
+              placeholder="Search"
               className="w-full text-[15px] font-medium bg-transparent outline-none placeholder:text-zinc-500 dark:placeholder:text-zinc-400 text-zinc-900 dark:text-white"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -102,8 +102,8 @@ export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps
                   </div>
               ) : results.length > 0 ? (
                   results.map((item) => (
-                  <div key={item.id} className="flex gap-4 p-3 hover:bg-white dark:hover:bg-zinc-800/50 squircle squircle-xl transition-colors group">
-                      <div className="w-10 h-14 bg-zinc-200 squircle squircle-lg shrink-0 overflow-hidden">
+                  <div key={item.id} className="flex gap-4 p-3 squircle-mask squircle-xl transition-colors group">
+                      <div className="w-10 h-14 bg-zinc-200 squircle-mask squircle-lg shrink-0 overflow-hidden">
                       {item.poster_path ? (
                           <img 
                           src={`https://image.tmdb.org/t/p/w92${item.poster_path}`} 
@@ -120,7 +120,7 @@ export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps
                       <div className="grow min-w-0 flex flex-col justify-center">
                       <h3 className="font-medium text-sm text-zinc-900 dark:text-zinc-100 truncate">{item.title || item.name}</h3>
                       <div className="flex items-center gap-2 text-xs text-zinc-500">
-                          <span className="capitalize">{item.media_type === 'tv' ? 'TV Show' : 'Movie'}</span>
+                          <span className="capitalize">{item.media_type === 'tv' ? 'TV shows' : 'Movie'}</span>
                           <span>•</span>
                           <span>{(item.release_date || item.first_air_date)?.split('-')[0] || 'N/A'}</span>
                       </div>
@@ -130,7 +130,7 @@ export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps
                       <button 
                           onClick={() => handleAdd(item)}
                           disabled={addingId === item.id}
-                          className="p-2 squircle squircle-lg bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                          className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-[#e5e5e5] dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                           {addingId === item.id ? <Spinner className="animate-spin" size={16} /> : <Plus size={16} weight="bold" />}
                       </button>

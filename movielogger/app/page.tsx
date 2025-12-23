@@ -1,5 +1,4 @@
 "use client";
-// useSession used from authClient
 
 
 import { useState, useEffect } from "react";
@@ -7,7 +6,7 @@ import MovieCard from "./components/MovieCard";
 import { MediaType, Movie } from "./lib/data";
 import SearchModal from "./components/SearchModal";
 import { authClient } from "@/lib/auth-client";
-import { FilmSlate, Television, GameController, CaretRight, Faders, GoogleLogo, MagnifyingGlass, Plus, Moon, Sun, SignOut } from "@phosphor-icons/react";
+import { GoogleLogo, MagnifyingGlass, Plus, Moon, Sun, SignOut, Sparkle } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
 
 export default function Home() {
@@ -32,7 +31,7 @@ export default function Home() {
               rating: 0,
               year: parseInt(item.year) || new Date().getFullYear(),
               description: "",
-              type: item.mediaType === 'tv' ? 'Web Series' : 'Movie',
+              type: item.mediaType === 'tv' ? 'TV shows' : 'Movie',
               isStaffPick: false
            }));
            setMovies(mappedMovies);
@@ -57,7 +56,6 @@ export default function Home() {
       });
       if (res.ok) {
         await fetchMovies();
-        setIsSearchOpen(false);
       }
     } catch (error) {
       console.error("Failed to add movie", error);
@@ -80,25 +78,12 @@ export default function Home() {
     ? movies 
     : movies.filter(m => m.type === activeFilter);
 
-  const filters: (MediaType | "All")[] = ["All", "Movie", "Web Series", "Anime"];
+  const filters: (MediaType | "All")[] = ["All", "Movie", "TV shows", "Anime"];
   
-  const getFilterIcon = (filter: MediaType | "All") => {
-    switch(filter) {
-      case "All":
-        return <Faders size={16} weight="fill" />;
-      case "Movie":
-        return <FilmSlate size={16} weight="fill" />;
-      case "Web Series":
-        return <Television size={16} weight="fill" />;
-      case "Anime":
-        return <GameController size={16} weight="fill" />;
-      default:
-        return null;
-    }
-  };
+
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 sm:p-8">
+    <div className="min-h-screen bg-background text-foreground p-4 sm:p-8 pb-32">
       <SearchModal 
         isOpen={isSearchOpen} 
         onClose={() => setIsSearchOpen(false)} 
@@ -106,8 +91,8 @@ export default function Home() {
       />
 
       <header className="max-w-[1400px] mx-auto mb-10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide min-w-0 pr-4">
             {filters.map((filter) => (
               <button
                 key={filter}
@@ -118,7 +103,6 @@ export default function Home() {
                     : "bg-[#f2f2f2] text-zinc-600 hover:bg-gray-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
                 }`}
               >
-                {getFilterIcon(filter)}
                 {filter === "Movie" ? "Movies" : filter}
               </button>
             ))}
@@ -170,7 +154,7 @@ export default function Home() {
           ) : (
             <button
               onClick={handleSignIn}
-              className="px-4 py-2 squircle-mask squircle-2xl text-[13px] font-medium bg-[#f2f2f2] text-zinc-600 hover:bg-gray-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-all duration-200 self-start sm:self-auto whitespace-nowrap flex items-center gap-2"
+              className="px-4 py-2 squircle-mask squircle-2xl text-[13px] font-medium bg-[#f2f2f2] text-zinc-600 hover:bg-gray-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-all duration-200 whitespace-nowrap flex items-center gap-2"
             >
               <GoogleLogo size={16} weight="bold" />
               Sign in
@@ -193,16 +177,19 @@ export default function Home() {
         )}
       </main>
 
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 flex flex-col-reverse sm:flex-row items-end sm:items-center gap-2">
         <button 
           onClick={() => setIsSearchOpen(true)}
-          className={`w-full squircle-mask squircle-3xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md p-4 flex items-center gap-3 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-[#e5e5e5] dark:hover:bg-zinc-900 transition-all duration-300 group ${isSearchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+          className={`w-full sm:flex-1 squircle-mask squircle-3xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md p-4 flex items-center gap-3 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-[#e5e5e5] dark:hover:bg-zinc-900 transition-all duration-300 group ${isSearchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
         >
           <MagnifyingGlass size={20} weight="bold" className="text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors" />
-          <span className="text-[15px] font-medium grow text-left">Search movie, series, anime to add...</span>
+          <span className="text-[15px] font-medium grow text-left">Search</span>
           <div className="flex items-center justify-center w-6 h-6 squircle-mask squircle-md bg-white dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500">
             <Plus size={12} weight="bold" />
           </div>
+        </button>
+        <button className="h-[56px] w-[56px] flex-none flex items-center justify-center squircle-mask squircle-3xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-[#e5e5e5] dark:hover:bg-zinc-900 transition-all duration-300">
+           <Sparkle size={22} />
         </button>
       </div>
     </div>
