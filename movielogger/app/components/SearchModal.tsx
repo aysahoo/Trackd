@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useDeferredValue } from "react";
 import { MagnifyingGlass, Spinner, Plus, Check } from "@phosphor-icons/react";
+import { useSearch } from "../hooks/useSearch";
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -11,16 +12,17 @@ interface SearchModalProps {
 
 export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [addingId, setAddingId] = useState<string | null>(null);
+  const deferredQuery = useDeferredValue(query);
+  const [addingId, setAddingId] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // TanStack Query hook for searching
+  const { data: results = [], isLoading: loading } = useSearch(deferredQuery);
 
   // Reset state when closed
   useEffect(() => {
     if (!isOpen) {
       setQuery("");
-      setResults([]);
     } else {
       // Focus input when opened
       setTimeout(() => {
@@ -29,36 +31,12 @@ export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (query.length > 2) {
-        searchTMDB();
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [query]);
-
-  async function searchTMDB() {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/tmdb?query=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      if (data.results) {
-        setResults(data.results.filter((item: any) => item.media_type === 'movie' || item.media_type === 'tv'));
-      }
-    } catch (error) {
-      console.error("Search failed:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const handleAdd = async (movie: any) => {
     setAddingId(movie.id);
     await onAdd(movie);
     setAddingId(null);
   };
+
 
   return (
     <>

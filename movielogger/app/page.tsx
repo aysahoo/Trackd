@@ -1,65 +1,30 @@
 "use client";
 
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import MovieCard from "./components/MovieCard";
-import { MediaType, Movie } from "./lib/data";
+import { MediaType } from "./lib/data";
 import SearchModal from "./components/SearchModal";
+import SuggestionsModal from "./components/SuggestionsModal";
 import { authClient } from "@/lib/auth-client";
-import { GoogleLogo, MagnifyingGlass, Plus, Moon, Sun, SignOut, Sparkle } from "@phosphor-icons/react";
+import { GoogleLogo, MagnifyingGlass, Plus, Moon, Sun, SignOut, Eyes } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
+import { useWatchlist, useAddToWatchlist } from "./hooks/useWatchlist";
 
 export default function Home() {
   const { data: session, isPending } = authClient.useSession();
   const { theme, setTheme } = useTheme();
   const [activeFilter, setActiveFilter] = useState<MediaType | "All">("All");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(true);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
 
-  async function fetchMovies() {
-      try {
-        const res = await fetch("/api/watchlist");
-        const data = await res.json();
-        if (data.success) {
-           const mappedMovies: Movie[] = data.data.map((item: any) => ({
-              id: item.id,
-              title: item.title,
-              posterUrl: `https://image.tmdb.org/t/p/w500${item.poster}`,
-              rating: 0,
-              year: parseInt(item.year) || new Date().getFullYear(),
-              description: "",
-              type: item.mediaType === 'tv' ? 'TV shows' : 'Movie',
-              isStaffPick: false
-           }));
-           setMovies(mappedMovies);
-        }
-      } catch (e) {
-        console.error("Failed to fetch movies", e);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-  useEffect(() => {
-    fetchMovies();
-  }, []);
+  // TanStack Query hooks for data fetching
+  const { data: movies = [], isLoading: loading } = useWatchlist();
+  const addToWatchlistMutation = useAddToWatchlist();
 
   const handleAddMovie = async (movie: any) => {
-    try {
-      const res = await fetch("/api/watchlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(movie),
-      });
-      if (res.ok) {
-        await fetchMovies();
-      }
-    } catch (error) {
-      console.error("Failed to add movie", error);
-    }
+    await addToWatchlistMutation.mutateAsync(movie);
   };
 
   const handleSignIn = async () => {
@@ -88,6 +53,10 @@ export default function Home() {
         isOpen={isSearchOpen} 
         onClose={() => setIsSearchOpen(false)} 
         onAdd={handleAddMovie} 
+      />
+      <SuggestionsModal
+        isOpen={isSuggestionsOpen}
+        onClose={() => setIsSuggestionsOpen(false)}
       />
 
       <header className="max-w-[1400px] mx-auto mb-10">
@@ -169,7 +138,7 @@ export default function Home() {
         ) : filteredMovies.length === 0 ? (
              <div className="text-center py-20 text-zinc-500">Your watchlist is empty. Add some movies!</div>
         ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3">
           {filteredMovies.map((movie) => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
@@ -188,8 +157,11 @@ export default function Home() {
             <Plus size={12} weight="bold" />
           </div>
         </button>
-        <button className="h-[56px] w-[56px] flex-none flex items-center justify-center squircle-mask squircle-3xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-[#e5e5e5] dark:hover:bg-zinc-900 transition-all duration-300">
-           <Sparkle size={22} />
+        <button 
+          onClick={() => setIsSuggestionsOpen(true)}
+          className="h-[56px] w-[56px] flex-none flex items-center justify-center squircle-mask squircle-3xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-[#e5e5e5] dark:hover:bg-zinc-900 transition-all duration-300"
+        >
+           <Eyes size={22} />
         </button>
       </div>
     </div>

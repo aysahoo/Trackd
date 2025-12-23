@@ -14,6 +14,7 @@
     "@squircle/core": "^1.0.6",
     "@squircle/paint-polyfill": "^1.0.6",
     "@squircle/tailwindcss": "^1.0.6",
+    "@tanstack/react-query": "^5.90.12",
     "better-auth": "^1.4.7",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.41.0",
