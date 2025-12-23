@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useDeferredValue } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { X, FilmSlate, User, UserPlus, Plus, Check, Trash, Eyes, PaperPlaneTilt, CaretLeft, MagnifyingGlass } from "@phosphor-icons/react";
+import { X, FilmSlate, User, UserPlus, Plus, Check, Trash, Eyes, PaperPlaneTilt, CaretLeft, MagnifyingGlass, Spinner } from "@phosphor-icons/react";
 import { useSearch } from "../hooks/useSearch";
+import { useDebounce } from "../hooks/useDebounce";
 
 interface SuggestionsModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
   const [requests, setRequests] = useState<Friend[]>([]);
   const [sentRequests, setSentRequests] = useState<Friend[]>([]);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [loadingFriends, setLoadingFriends] = useState(false);
   const [addingFriend, setAddingFriend] = useState(false);
 
@@ -44,11 +46,13 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
   const [watchlist, setWatchlist] = useState<any[]>([]);
   const [suggestingToFriend, setSuggestingToFriend] = useState<Friend | null>(null);
   const [loadingWatchlist, setLoadingWatchlist] = useState(false);
+  const [sendingSuggestion, setSendingSuggestion] = useState<string | null>(null); // Track which item is being sent
+  const [suggestionSuccess, setSuggestionSuccess] = useState<string | null>(null); // Track successful suggestion
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
-  const deferredSearchQuery = useDeferredValue(searchQuery);
-  const { data: searchResults = [], isLoading: isSearching } = useSearch(deferredSearchQuery);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const { data: searchResults = [], isLoading: isSearching } = useSearch(debouncedSearchQuery);
 
   const fetchWatchlist = async () => {
     setLoadingWatchlist(true);
@@ -79,29 +83,37 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
   const handleSendSuggestion = async (movie: any) => {
     if (!suggestingToFriend) return;
 
+    const movieId = movie.tmdbId || movie.id;
+    setSendingSuggestion(movieId);
+    setSuggestionSuccess(null);
+
     try {
       const res = await fetch('/api/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           friendId: suggestingToFriend.userId,
-          tmdbId: movie.tmdbId,
-          mediaType: movie.mediaType,
-          title: movie.title,
-          year: movie.year,
-          poster: movie.poster
+          tmdbId: movieId,
+          mediaType: movie.mediaType || movie.media_type,
+          title: movie.title || movie.name,
+          year: movie.year || (movie.release_date || movie.first_air_date)?.split('-')[0],
+          poster: movie.poster || movie.poster_path
         }),
       });
 
       if (res.ok) {
-        alert(`Suggested "${movie.title}" to ${suggestingToFriend.name}`);
-        handleBackToFriends();
+        setSuggestionSuccess(movieId);
+        // Auto-clear success after 2 seconds (stay on view to allow more suggestions)
+        setTimeout(() => {
+          setSuggestionSuccess(null);
+        }, 1500);
       } else {
-        alert("Failed to send suggestion");
+        console.error("Failed to send suggestion");
       }
     } catch (error) {
       console.error("Failed to send suggestion:", error);
-      alert("Error sending suggestion");
+    } finally {
+      setSendingSuggestion(null);
     }
   };
 
@@ -226,6 +238,7 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
   }, [isOpen, activeTab]);
 
   const fetchSuggestions = async () => {
+    setLoadingSuggestions(true);
     try {
       const res = await fetch('/api/suggestions');
       const data = await res.json();
@@ -245,6 +258,8 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
       }
     } catch (error) {
       console.error('Failed to fetch suggestions:', error);
+    } finally {
+      setLoadingSuggestions(false);
     }
   };
 
@@ -377,8 +392,10 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
           {/* Content */}
           <div className="px-3 pb-3 flex-1 overflow-hidden">
             {activeTab === "suggestions" && !suggestingToFriend ? (
-              <div className="h-full overflow-y-auto custom-scrollbar p-2 space-y-2">
-                {suggestions.length > 0 ? (
+              <div className={`h-full overflow-y-auto custom-scrollbar p-2 ${loadingSuggestions || suggestions.length === 0 ? 'flex items-center justify-center' : 'space-y-2'}`}>
+                {loadingSuggestions ? (
+                  <Spinner className="animate-spin text-zinc-400" size={24} />
+                ) : suggestions.length > 0 ? (
                   suggestions.map((suggestion) => (
                     <div
                       key={suggestion.id}
@@ -437,8 +454,8 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-12 text-zinc-400 dark:text-zinc-500">
-                    <FilmSlate size={40} className="mx-auto mb-3 opacity-50" />
+                  <div className="flex flex-col items-center text-zinc-400 dark:text-zinc-500">
+                    <FilmSlate size={40} className="mb-3 opacity-50" />
                     <p className="text-sm">No suggestions yet</p>
                     <p className="text-xs mt-1">Ask your friends to suggest movies!</p>
                   </div>
@@ -475,7 +492,7 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                   {searchQuery.length > 2 ? (
                     isSearching ? (
                       <div className="flex justify-center py-12">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-zinc-900 dark:border-white"></div>
+                        <Spinner className="animate-spin text-zinc-400" size={24} />
                       </div>
                     ) : searchResults.length > 0 ? (
                       searchResults.map((item: any) => (
@@ -510,16 +527,22 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                             </div>
                           </div>
                           <button
-                            onClick={() => handleSendSuggestion({
-                              tmdbId: item.id,
-                              mediaType: item.media_type,
-                              title: item.title || item.name,
-                              year: (item.release_date || item.first_air_date)?.split('-')[0],
-                              poster: item.poster_path
-                            })}
-                            className="self-center px-3 py-1.5 bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black squircle-mask squircle-lg text-xs font-medium transition-colors"
+                            type="button"
+                            onClick={() => handleSendSuggestion(item)}
+                            disabled={sendingSuggestion === item.id || suggestionSuccess === item.id}
+                            className={`self-center px-3 py-1.5 squircle-mask squircle-lg text-xs font-medium transition-all min-w-[70px] flex items-center justify-center gap-1 ${
+                              suggestionSuccess === item.id
+                                ? 'bg-emerald-500 text-white'
+                                : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black'
+                            }`}
                           >
-                            Suggest
+                            {sendingSuggestion === item.id ? (
+                              <Spinner className="animate-spin" size={14} />
+                            ) : suggestionSuccess === item.id ? (
+                              <><Check size={14} weight="bold" /> Sent!</>
+                            ) : (
+                              'Suggest'
+                            )}
                           </button>
                         </div>
                       ))
@@ -534,7 +557,7 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                       <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 px-1">From Your Watchlist</h3>
                       {loadingWatchlist ? (
                         <div className="flex justify-center py-12">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-zinc-900 dark:border-white"></div>
+                          <Spinner className="animate-spin text-zinc-400" size={24} />
                         </div>
                       ) : watchlist.length > 0 ? (
                         watchlist.map((item) => (
@@ -564,10 +587,22 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                               </span>
                             </div>
                             <button
+                              type="button"
                               onClick={() => handleSendSuggestion(item)}
-                              className="self-center px-3 py-1.5 bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black squircle-mask squircle-lg text-xs font-medium transition-colors"
+                              disabled={sendingSuggestion === (item.tmdbId || item.id) || suggestionSuccess === (item.tmdbId || item.id)}
+                              className={`self-center px-3 py-1.5 squircle-mask squircle-lg text-xs font-medium transition-all min-w-[70px] flex items-center justify-center gap-1 ${
+                                suggestionSuccess === (item.tmdbId || item.id)
+                                  ? 'bg-emerald-500 text-white'
+                                  : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black'
+                              }`}
                             >
-                              Suggest
+                              {sendingSuggestion === (item.tmdbId || item.id) ? (
+                                <Spinner className="animate-spin" size={14} />
+                              ) : suggestionSuccess === (item.tmdbId || item.id) ? (
+                                <><Check size={14} weight="bold" /> Sent!</>
+                              ) : (
+                                'Suggest'
+                              )}
                             </button>
                           </div>
                         ))
@@ -606,11 +641,9 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                 </div>
 
                 {/* Friends List */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-2">
+                <div className={`flex-1 overflow-y-auto custom-scrollbar p-2 ${loadingFriends ? 'flex items-center justify-center' : 'space-y-2'}`}>
                   {loadingFriends ? (
-                    <div className="flex justify-center py-12">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-zinc-900 dark:border-white"></div>
-                    </div>
+                    <Spinner className="animate-spin text-zinc-400" size={24} />
                   ) : friends.length + requests.length + sentRequests.length > 0 ? (
                     <>
                       {/* Received Requests */}

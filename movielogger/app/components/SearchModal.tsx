@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, useDeferredValue } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MagnifyingGlass, Spinner, Plus, Check } from "@phosphor-icons/react";
 import { useSearch } from "../hooks/useSearch";
+import { useDebounce } from "../hooks/useDebounce";
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -12,12 +13,12 @@ interface SearchModalProps {
 
 export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps) {
   const [query, setQuery] = useState("");
-  const deferredQuery = useDeferredValue(query);
+  const debouncedQuery = useDebounce(query, 300);
   const [addingId, setAddingId] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // TanStack Query hook for searching
-  const { data: results = [], isLoading: loading } = useSearch(deferredQuery);
+  const { data: results = [], isLoading: loading } = useSearch(debouncedQuery);
 
   // Reset state when closed
   useEffect(() => {
