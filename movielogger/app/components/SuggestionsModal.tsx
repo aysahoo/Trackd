@@ -248,7 +248,7 @@ export default function SuggestionsModal({
           {/* Content */}
           <div className="px-3 pb-3 flex-1 overflow-hidden">
             {activeTab === "suggestions" && !suggestingToFriend ? (
-              <div className={`h-full overflow-y-auto custom-scrollbar p-2 ${loadingSuggestions || suggestions.length === 0 ? 'flex items-center justify-center' : 'space-y-2'}`}>
+              <div className={`h-full overflow-y-auto scrollbar-hide px-2 pt-2 ${loadingSuggestions || suggestions.length === 0 ? 'pb-2 flex items-center justify-center' : 'pb-12 space-y-2 [mask-image:linear-gradient(to_bottom,black_calc(100%-48px),transparent_100%)]'}`}>
                 {loadingSuggestions ? (
                   <Spinner className="animate-spin text-zinc-400" size={24} />
                 ) : suggestions.length > 0 ? (
@@ -352,7 +352,7 @@ export default function SuggestionsModal({
                   </div>
                 </div>
 
-                <div className={`h-full overflow-y-auto custom-scrollbar p-2 ${loadingWatchlist && searchQuery.length <= 2 ? 'flex items-center justify-center' : 'space-y-2'}`}>
+                <div className={`h-full overflow-y-auto scrollbar-hide px-2 pt-2 ${loadingWatchlist && searchQuery.length <= 2 ? 'pb-2 flex items-center justify-center' : 'pb-12 space-y-2 [mask-image:linear-gradient(to_bottom,black_calc(100%-48px),transparent_100%)]'}`}>
                   {/* Search Results State */}
                   {searchQuery.length > 2 ? (
                     isSearching ? (
@@ -503,7 +503,7 @@ export default function SuggestionsModal({
                 </div>
 
                 {/* Friends List */}
-                <div className={`flex-1 overflow-y-auto custom-scrollbar p-2 ${loadingFriends ? 'flex items-center justify-center' : 'space-y-2'}`}>
+                <div className={`flex-1 overflow-y-auto scrollbar-hide px-2 pt-2 ${loadingFriends ? 'pb-2 flex items-center justify-center' : 'pb-12 space-y-2 [mask-image:linear-gradient(to_bottom,black_calc(100%-48px),transparent_100%)]'}`}>
                   {loadingFriends ? (
                     <Spinner className="animate-spin text-zinc-400" size={24} />
                   ) : friends.length + requests.length + sentRequests.length > 0 ? (

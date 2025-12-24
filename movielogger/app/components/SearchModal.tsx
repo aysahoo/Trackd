@@ -21,13 +21,12 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
   const [addingId, setAddingId] = useState<{ id: number; type: 'watched' | 'watch_later' } | null>(null);
   const [actionId, setActionId] = useState<{ id: number; action: 'update' | 'delete' } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const updateStatusMutation = useUpdateStatus();
   const removeFromWatchlistMutation = useRemoveFromWatchlist();
 
   const { data: results = [], isLoading: loading } = useSearch(debouncedQuery);
-
-  // Create lookup Sets for O(1) status checking
   const watchedIds = useMemo(() => 
     new Set(existingMovies.filter(m => m.status === 'watched').map(m => m.tmdbId)), 
     [existingMovies]
@@ -38,8 +37,34 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
   );
 
   useEffect(() => {
+    if (!isOpen) return;
+
+    const updatePosition = () => {
+      if (!window.visualViewport || !containerRef.current) return;
+      
+      const viewportHeight = window.visualViewport.height;
+      const windowHeight = window.innerHeight;
+      const keyboardHeight = Math.max(0, windowHeight - viewportHeight);
+      
+      // Direct DOM update for performance and to avoid transition lag
+      containerRef.current.style.bottom = `${Math.max(32, keyboardHeight + 8)}px`;
+    };
+
+    updatePosition();
+    
+    window.visualViewport?.addEventListener('resize', updatePosition);
+    window.visualViewport?.addEventListener('scroll', updatePosition);
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', updatePosition);
+      window.visualViewport?.removeEventListener('scroll', updatePosition);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen) {
       setQuery("");
+      if (containerRef.current) containerRef.current.style.bottom = '32px';
     } else {
       setTimeout(() => {
         inputRef.current?.focus();
@@ -47,7 +72,6 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
     }
   }, [isOpen]);
 
-  // Set initial query when modal opens with a key press
   useEffect(() => {
     if (isOpen && initialQuery) {
       setQuery(initialQuery);
@@ -80,7 +104,11 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
         onClick={onClose}
       />
       
-      <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[101] w-full max-w-md px-4 transition-all duration-300 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+      <div 
+        ref={containerRef}
+        className={`fixed left-1/2 -translate-x-1/2 z-[101] w-full max-w-md px-4 transition-[opacity,visibility] duration-300 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
+        style={{ bottom: '32px' }}
+      >
         <div className="relative w-full bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md squircle-mask squircle-3xl flex flex-col-reverse">
           
           {/* Input Section (at bottom) */}
@@ -107,8 +135,8 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
           </div>
 
           {/* Results Section (stacks upwards from input) */}
-          <div className={`transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden ${query.length > 0 || results.length > 0 || loading ? 'max-h-[60vh] opacity-100' : 'max-h-0 opacity-0'}`}>
-               <div className="overflow-y-auto max-h-[60vh] p-2 space-y-2 border-b border-zinc-200/50 dark:border-zinc-800/50 custom-scrollbar">
+          <div className={`transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden ${query.length > 0 || results.length > 0 || loading ? 'max-h-[300px] sm:max-h-[60vh] opacity-100' : 'max-h-0 opacity-0'}`}>
+               <div className="overflow-y-auto max-h-[300px] sm:max-h-[60vh] p-2 space-y-2 border-b border-zinc-200/50 dark:border-zinc-800/50 scrollbar-hide">
               {loading ? (
                   <div className="flex justify-center py-8">
                   <Spinner className="animate-spin text-zinc-400" size={24} />

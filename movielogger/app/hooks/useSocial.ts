@@ -86,6 +86,9 @@ export function useSuggestions(enabled: boolean = true) {
     queryKey: SUGGESTIONS_KEY,
     queryFn: fetchSuggestions,
     enabled,
+    refetchInterval: 30000,
+    refetchOnWindowFocus: true,
+    refetchIntervalInBackground: false,
   });
 }
 

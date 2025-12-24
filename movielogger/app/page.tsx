@@ -8,14 +8,14 @@ import SearchModal from "./components/SearchModal";
 import SuggestionsModal from "./components/SuggestionsModal";
 import MovieDetailsModal from "./components/MovieDetailsModal";
 import { authClient } from "@/lib/auth-client";
-import { GoogleLogo, MagnifyingGlass, Plus, Moon, Sun, SignOut, Bell } from "@phosphor-icons/react";
+import { GoogleLogo, MagnifyingGlass, Plus, Moon, Sun, SignOut, Bell, Spinner } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
 import { useWatchlist, useAddToWatchlist } from "./hooks/useWatchlist";
 import { useSuggestions, useFriends } from "./hooks/useSocial";
 
 export default function Home() {
   const { data: session, isPending } = authClient.useSession();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [activeFilter, setActiveFilter] = useState<MediaType | "All">("All");
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -80,7 +80,7 @@ export default function Home() {
 
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 sm:p-8 pb-32">
+    <div className="min-h-screen bg-background text-foreground p-4 sm:p-8 pb-32 overflow-y-auto scrollbar-hide">
       <SearchModal 
         isOpen={isSearchOpen} 
         onClose={() => {
@@ -152,8 +152,8 @@ export default function Home() {
                       }}
                       className="flex items-center gap-3 px-3 py-2 text-sm font-medium squircle-mask squircle-lg transition-all w-full text-left text-zinc-600 hover:bg-gray-200 dark:text-zinc-400 dark:hover:bg-zinc-800"
                     >
-                      {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-                      {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                      {resolvedTheme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                      {resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                     </button>
                     <button 
                       onClick={handleSignOut}
@@ -172,7 +172,6 @@ export default function Home() {
               className="px-4 py-2 squircle-mask squircle-2xl text-[13px] font-medium bg-[#f2f2f2] text-zinc-600 hover:bg-gray-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-all duration-200 whitespace-nowrap flex items-center gap-2"
             >
               <GoogleLogo size={16} weight="bold" />
-              Sign in
             </button>
           )}
         </div>
@@ -180,7 +179,9 @@ export default function Home() {
       
       <main className="max-w-[1400px] mx-auto">
         {loading ? (
-             <div className="text-center py-20 text-zinc-500">Loading your watchlist...</div>
+             <div className="flex justify-center py-20">
+               <Spinner className="animate-spin text-zinc-400" size={24} />
+             </div>
         ) : filteredMovies.length === 0 ? (
              <div className="text-center py-20 text-zinc-500">Your watchlist is empty. Add some movies!</div>
          ) : (
@@ -205,9 +206,12 @@ export default function Home() {
         </button>
         <button 
           onClick={() => setIsSuggestionsOpen(true)}
-          className="h-[56px] w-[56px] flex-none flex items-center justify-center squircle-mask squircle-3xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-[#e5e5e5] dark:hover:bg-zinc-900 transition-all duration-300"
+          className="relative h-[56px] w-[56px] flex-none flex items-center justify-center squircle-mask squircle-3xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-[#e5e5e5] dark:hover:bg-zinc-900 transition-all duration-300"
         >
            <Bell size={22} />
+           {suggestions.length > 0 && (
+             <span className="absolute top-3.5 right-3.5 w-2 h-2 bg-orange-500 rounded-full" />
+           )}
         </button>
       </div>
     </div>

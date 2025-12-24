@@ -47,4 +47,12 @@ input:-webkit-autofill:active {
   box-shadow: 0 0 0 1000px #27272a inset !important;
   caret-color: #fafafa !important;
 }
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
 
