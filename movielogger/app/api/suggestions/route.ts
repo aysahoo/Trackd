@@ -16,7 +16,6 @@ export async function GET(req: Request) {
     }
 
     try {
-        // Fetch suggestions received by the current user
         const suggestions = await db.select({
             id: suggestion.id,
             friendName: user.name,
@@ -31,10 +30,10 @@ export async function GET(req: Request) {
             status: suggestion.status
         })
             .from(suggestion)
-            .innerJoin(user, eq(suggestion.friendId, user.id)) // Join to get sender details
+            .innerJoin(user, eq(suggestion.friendId, user.id))
             .where(
                 and(
-                    eq(suggestion.userId, session.user.id), // Recipient is current user
+                    eq(suggestion.userId, session.user.id),
                     eq(suggestion.status, "pending")
                 )
             )
@@ -66,13 +65,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
         }
 
-        // Create suggestion
-        // I am the sender (friendId in table), they are the recipient (userId in table)
         const id = nanoid();
         await db.insert(suggestion).values({
             id,
-            userId: friendId, // Recipient
-            friendId: session.user.id, // Sender
+            userId: friendId,
+            friendId: session.user.id,
             tmdbId,
             mediaType,
             title,
@@ -103,8 +100,6 @@ export async function PATCH(req: Request) {
         if (!id || !["accepted", "dismissed"].includes(status)) {
             return NextResponse.json({ success: false, error: "Invalid request" }, { status: 400 });
         }
-
-        // Verify this suggestion is for the current user
         const existing = await db.select()
             .from(suggestion)
             .where(

@@ -39,7 +39,6 @@ export async function POST(req: Request) {
     try {
         const movie = await req.json();
 
-        // Check if already exists
         const existing = await db.select()
             .from(watchItem)
             .where(eq(watchItem.tmdbId, movie.id.toString()))
@@ -52,7 +51,7 @@ export async function POST(req: Request) {
             title: movie.title || movie.name,
             year: (movie.release_date || movie.first_air_date)?.split("-")[0] || null,
             poster: movie.poster_path,
-            status: "wishlist", // Defaulting to wishlist when adding from search, user can change later
+            status: "wishlist",
         });
 
         return NextResponse.json({ success: true, message: "Added to watchlist" });

@@ -17,15 +17,12 @@ export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps
   const [addingId, setAddingId] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // TanStack Query hook for searching
   const { data: results = [], isLoading: loading } = useSearch(debouncedQuery);
 
-  // Reset state when closed
   useEffect(() => {
     if (!isOpen) {
       setQuery("");
     } else {
-      // Focus input when opened
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);

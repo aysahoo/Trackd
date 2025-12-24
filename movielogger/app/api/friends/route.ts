@@ -16,8 +16,6 @@ export async function GET(req: Request) {
     }
 
     try {
-        // Find all friendships where current user is involved
-        // This query fetches both confirmed friends and pending requests (where user is the recipient)
         const allFriendships = await db.select({
             id: friend.id,
             friendId: user.id,
@@ -25,7 +23,7 @@ export async function GET(req: Request) {
             email: user.email,
             image: user.image,
             status: friend.status,
-            requesterId: friend.userId, // needed to know who sent the request
+            requesterId: friend.userId,
         })
             .from(friend)
             .innerJoin(user, or(
@@ -76,15 +74,11 @@ export async function POST(req: Request) {
         if (email === session.user.email) {
             return NextResponse.json({ success: false, error: "Cannot add yourself" }, { status: 400 });
         }
-
-        // Find the user by email
         const [targetUser] = await db.select().from(user).where(eq(user.email, email));
 
         if (!targetUser) {
             return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
         }
-
-        // Check if friendship already exists
         const existing = await db.select()
             .from(friend)
             .where(
@@ -98,7 +92,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: "Friendship already exists" }, { status: 400 });
         }
 
-        // Create friendship (pending)
         const id = nanoid();
         await db.insert(friend).values({
             id,
@@ -107,8 +100,6 @@ export async function POST(req: Request) {
             status: "pending",
         });
 
-        // We don't return the full friend object here because it's just a request now
-        // But the UI might expect some confirmation
         return NextResponse.json({ success: true, message: "Request sent" });
     } catch (error) {
         console.error("Failed to add friend:", error);
@@ -126,19 +117,18 @@ export async function PATCH(req: Request) {
     }
 
     try {
-        const { id, action } = await req.json(); // id is the friendship ID
+        const { id, action } = await req.json();
 
         if (!id || action !== "accept") {
             return NextResponse.json({ success: false, error: "Invalid request" }, { status: 400 });
         }
 
-        // Verify this request is intended for the current user
         const request = await db.select()
             .from(friend)
             .where(
                 and(
                     eq(friend.id, id),
-                    eq(friend.friendId, session.user.id), // Must be the recipient
+                    eq(friend.friendId, session.user.id),
                     eq(friend.status, "pending")
                 )
             );
@@ -169,9 +159,7 @@ export async function DELETE(req: Request) {
 
     try {
         const { searchParams } = new URL(req.url);
-        const friendId = searchParams.get("id"); // This expects the friend RELATIONSHIP id, or the FRIEND USER ID?
-        // UI uses `handleRemoveFriend(friend.id)`. 
-        // In GET, I returned `id` as `friend.id` (the relationship ID).
+        const friendId = searchParams.get("id");
 
         if (!friendId) {
             return NextResponse.json({ success: false, error: "Missing ID" }, { status: 400 });
