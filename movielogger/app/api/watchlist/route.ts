@@ -47,7 +47,7 @@ export async function POST(req: Request) {
             id: nanoid(),
             userId: session.user.id,
             tmdbId: movie.id.toString(),
-            mediaType: movie.media_type || "movie",
+            mediaType: (movie.genre_ids?.includes(16) && (movie.origin_country?.includes("JP") || movie.original_language === "ja")) ? "anime" : (movie.media_type || "movie"),
             title: movie.title || movie.name,
             year: (movie.release_date || movie.first_air_date)?.split("-")[0] || null,
             poster: movie.poster_path,
@@ -71,10 +71,18 @@ export async function PATCH(req: Request) {
     }
 
     try {
-        const { tmdbId, status } = await req.json();
+        const { tmdbId, status, rating } = await req.json();
+
+        const updateData: { status?: string, rating?: number } = {};
+        if (status) updateData.status = status;
+        if (rating !== undefined) updateData.rating = rating;
+
+        if (Object.keys(updateData).length === 0) {
+            return NextResponse.json({ success: false, error: "No fields to update" }, { status: 400 });
+        }
 
         await db.update(watchItem)
-            .set({ status })
+            .set(updateData)
             .where(eq(watchItem.tmdbId, tmdbId.toString()));
 
         return NextResponse.json({ success: true, message: "Status updated" });

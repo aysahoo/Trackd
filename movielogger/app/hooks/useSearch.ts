@@ -11,7 +11,7 @@ interface TMDBResult {
 }
 
 async function searchTMDB(query: string): Promise<TMDBResult[]> {
-  if (query.length <= 2) {
+  if (query.length < 2) {
     return [];
   }
 
@@ -32,7 +32,7 @@ export function useSearch(query: string) {
   return useQuery({
     queryKey: ["search", query],
     queryFn: () => searchTMDB(query),
-    enabled: query.length > 2, // Only run query when search term is > 2 chars
+    enabled: query.length >= 2, // Only run query when search term is >= 2 chars
     staleTime: 5 * 60 * 1000, // 5 minutes - search results can be cached longer
   });
 }
