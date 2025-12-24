@@ -1,78 +1,71 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { X, FilmSlate, User, UserPlus, Plus, Check, Trash, Eyes, PaperPlaneTilt, CaretLeft, MagnifyingGlass, Spinner } from "@phosphor-icons/react";
+import { X, FilmSlate, User, UserPlus, Plus, Check, Trash, Eyes, PaperPlaneTilt, CaretLeft, MagnifyingGlass, Spinner, Clock, Bell } from "@phosphor-icons/react";
 import { useSearch } from "../hooks/useSearch";
 import { useDebounce } from "../hooks/useDebounce";
+import { useWatchlist } from "../hooks/useWatchlist";
+import {
+  useAddFriend,
+  useRemoveFriend,
+  useAcceptFriend,
+  useSendSuggestion,
+  useDismissSuggestion,
+  useAcceptSuggestion,
+  Friend,
+  Suggestion,
+  FriendsData,
+} from "../hooks/useSocial";
 
 interface SuggestionsModalProps {
   isOpen: boolean;
   onClose: () => void;
-}
-
-// Types for suggestions and friends
-interface Suggestion {
-  id: string;
-  friendName: string;
-  friendAvatar: string;
-  movieTitle: string;
-  moviePoster: string;
-  timestamp: string;
-}
-
-interface Friend {
-  id: string;
-  userId: string;
-  name: string;
-  email: string;
-  avatar: string;
+  suggestions: Suggestion[];
+  loadingSuggestions: boolean;
+  friendsData: FriendsData | undefined;
+  loadingFriends: boolean;
 }
 
 type TabType = "suggestions" | "friends";
 
-export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalProps) {
+export default function SuggestionsModal({ 
+  isOpen, 
+  onClose,
+  suggestions,
+  loadingSuggestions,
+  friendsData,
+  loadingFriends,
+}: SuggestionsModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>("suggestions");
   const [email, setEmail] = useState("");
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [requests, setRequests] = useState<Friend[]>([]);
-  const [sentRequests, setSentRequests] = useState<Friend[]>([]);
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [loadingFriends, setLoadingFriends] = useState(false);
-  const [addingFriend, setAddingFriend] = useState(false);
 
-  // Suggest from watchlist state
-  const [watchlist, setWatchlist] = useState<any[]>([]);
+  // Suggest from watchlist state - uses cached TanStack Query data from homepage
+  const { data: watchlist = [], isLoading: loadingWatchlist } = useWatchlist();
   const [suggestingToFriend, setSuggestingToFriend] = useState<Friend | null>(null);
-  const [loadingWatchlist, setLoadingWatchlist] = useState(false);
-  const [sendingSuggestion, setSendingSuggestion] = useState<string | null>(null); // Track which item is being sent
-  const [suggestionSuccess, setSuggestionSuccess] = useState<string | null>(null); // Track successful suggestion
+  const [sendingSuggestion, setSendingSuggestion] = useState<string | null>(null);
+  const [suggestionSuccess, setSuggestionSuccess] = useState<string | null>(null);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const { data: searchResults = [], isLoading: isSearching } = useSearch(debouncedSearchQuery);
 
-  const fetchWatchlist = async () => {
-    setLoadingWatchlist(true);
-    try {
-      const res = await fetch('/api/watchlist');
-      const data = await res.json();
-      if (data.success) {
-        setWatchlist(data.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch watchlist:", error);
-    } finally {
-      setLoadingWatchlist(false);
-    }
-  };
+  // Mutations
+  const addFriendMutation = useAddFriend();
+  const removeFriendMutation = useRemoveFriend();
+  const acceptFriendMutation = useAcceptFriend();
+  const sendSuggestionMutation = useSendSuggestion();
+  const dismissSuggestionMutation = useDismissSuggestion();
+  const acceptSuggestionMutation = useAcceptSuggestion();
+
+  // Destructure friends data from props
+  const friends = friendsData?.friends ?? [];
+  const requests = friendsData?.requests ?? [];
+  const sentRequests = friendsData?.sentRequests ?? [];
 
   const handleStartSuggest = (friend: Friend) => {
     setSuggestingToFriend(friend);
     setSearchQuery("");
-    fetchWatchlist();
   };
 
   const handleBackToFriends = () => {
@@ -87,75 +80,38 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
     setSendingSuggestion(movieId);
     setSuggestionSuccess(null);
 
+    // Extract poster path from posterUrl if it exists (for Movie type from watchlist)
+    let posterPath = movie.poster || movie.poster_path;
+    if (!posterPath && movie.posterUrl) {
+      // Extract path from full URL like "https://image.tmdb.org/t/p/w500/abc123.jpg"
+      const match = movie.posterUrl.match(/\/w\d+(\/.+)$/);
+      posterPath = match ? match[1] : null;
+    }
+
+    // Determine media type - Movie type uses "type" field with values like "Movie" or "TV shows"
+    let mediaType = movie.mediaType || movie.media_type;
+    if (!mediaType && movie.type) {
+      mediaType = movie.type === "TV shows" ? "tv" : "movie";
+    }
+
     try {
-      const res = await fetch('/api/suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          friendId: suggestingToFriend.userId,
-          tmdbId: movieId,
-          mediaType: movie.mediaType || movie.media_type,
-          title: movie.title || movie.name,
-          year: movie.year || (movie.release_date || movie.first_air_date)?.split('-')[0],
-          poster: movie.poster || movie.poster_path
-        }),
+      await sendSuggestionMutation.mutateAsync({
+        friendId: suggestingToFriend.userId,
+        tmdbId: movieId,
+        mediaType: mediaType,
+        title: movie.title || movie.name,
+        year: movie.year || (movie.release_date || movie.first_air_date)?.split('-')[0],
+        poster: posterPath,
       });
 
-      if (res.ok) {
-        setSuggestionSuccess(movieId);
-        // Auto-clear success after 2 seconds (stay on view to allow more suggestions)
-        setTimeout(() => {
-          setSuggestionSuccess(null);
-        }, 1500);
-      } else {
-        console.error("Failed to send suggestion");
-      }
+      setSuggestionSuccess(movieId);
+      setTimeout(() => {
+        setSuggestionSuccess(null);
+      }, 1500);
     } catch (error) {
       console.error("Failed to send suggestion:", error);
     } finally {
       setSendingSuggestion(null);
-    }
-  };
-
-  // Fetch friends when tab is active
-  useEffect(() => {
-    if (isOpen && activeTab === 'friends') {
-      fetchFriends();
-    }
-  }, [isOpen, activeTab]);
-
-  const fetchFriends = async () => {
-    setLoadingFriends(true);
-    try {
-      const res = await fetch('/api/friends');
-      const data = await res.json();
-      if (data.success) {
-        setFriends(data.data.friends.map((f: any) => ({
-          id: f.id,
-          userId: f.friendId,
-          name: f.name || 'Unknown',
-          email: f.email,
-          avatar: f.image || `https://i.pravatar.cc/150?u=${f.email}`,
-        })));
-        setRequests(data.data.requests.map((f: any) => ({
-          id: f.id,
-          userId: f.friendId,
-          name: f.name || 'Unknown',
-          email: f.email,
-          avatar: f.image || `https://i.pravatar.cc/150?u=${f.email}`,
-        })));
-        setSentRequests(data.data.sentRequests.map((f: any) => ({
-          id: f.id,
-          userId: f.friendId,
-          name: f.name || 'Unknown',
-          email: f.email,
-          avatar: f.image || `https://i.pravatar.cc/150?u=${f.email}`,
-        })));
-      }
-    } catch (error) {
-      console.error('Failed to fetch friends:', error);
-    } finally {
-      setLoadingFriends(false);
     }
   };
 
@@ -170,44 +126,19 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
 
   const handleAddFriend = async () => {
     if (email.trim() && email.includes("@")) {
-      setAddingFriend(true);
       try {
-        const res = await fetch('/api/friends', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.trim() }),
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          // If request sent successfully, we might not get the full object back or we just want to update the sent requests list
-          // Re-fetching is easier to ensure consistent state
-          fetchFriends();
-          setEmail("");
-          alert("Request sent!");
-        } else {
-          alert(data.error || "Failed to add friend");
-        }
-      } catch (error) {
-        console.error("Failed to add friend:", error);
-        alert("Failed to add friend");
-      } finally {
-        setAddingFriend(false);
+        await addFriendMutation.mutateAsync(email.trim());
+        setEmail("");
+        alert("Request sent!");
+      } catch (error: any) {
+        alert(error.message || "Failed to add friend");
       }
     }
   };
 
   const handleRemoveFriend = async (id: string) => {
     try {
-      const res = await fetch(`/api/friends?id=${id}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-      if (data.success) {
-        setFriends((prev) => prev.filter((f) => f.id !== id));
-        setRequests((prev) => prev.filter((f) => f.id !== id));
-        setSentRequests((prev) => prev.filter((f) => f.id !== id));
-      }
+      await removeFriendMutation.mutateAsync(id);
     } catch (error) {
       console.error("Failed to remove friend:", error);
     }
@@ -215,101 +146,26 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
 
   const handleAcceptRequest = async (id: string) => {
     try {
-      const res = await fetch('/api/friends', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, action: 'accept' }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        // Move from requests to friends
-        fetchFriends(); // Refresh to get correct statuses
-      }
+      await acceptFriendMutation.mutateAsync(id);
     } catch (error) {
       console.error("Failed to accept friend:", error);
     }
   };
 
-  // Fetch suggestions when tab is active
-  useEffect(() => {
-    if (isOpen && activeTab === 'suggestions') {
-      fetchSuggestions();
-    }
-  }, [isOpen, activeTab]);
-
-  const fetchSuggestions = async () => {
-    setLoadingSuggestions(true);
-    try {
-      const res = await fetch('/api/suggestions');
-      const data = await res.json();
-      if (data.success) {
-        setSuggestions(data.data.map((s: any) => ({
-          id: s.id,
-          friendName: s.friendName || 'Unknown',
-          friendAvatar: s.friendAvatar || `https://i.pravatar.cc/150?u=${s.friendId}`, // Fallback if no avatar
-          movieTitle: s.movieTitle,
-          moviePoster: s.moviePoster ? `https://image.tmdb.org/t/p/w92${s.moviePoster}` : '', // Ensure full URL if not stored
-          timestamp: new Date(s.timestamp).toLocaleDateString(),
-          tmdbId: s.tmdbId,
-          mediaType: s.mediaType,
-          year: s.year,
-          posterPath: s.moviePoster, // Raw path for API
-        })));
-      }
-    } catch (error) {
-      console.error('Failed to fetch suggestions:', error);
-    } finally {
-      setLoadingSuggestions(false);
-    }
-  };
-
   const handleDismissSuggestion = async (id: string) => {
     try {
-      const res = await fetch('/api/suggestions', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, status: 'dismissed' }),
-      });
-      if (res.ok) {
-        setSuggestions((prev) => prev.filter((s) => s.id !== id));
-      }
+      await dismissSuggestionMutation.mutateAsync(id);
     } catch (error) {
       console.error("Failed to dismiss suggestion:", error);
     }
   };
 
-  const queryClient = useQueryClient();
-
-  const handleAddToWatchlist = async (suggestion: any) => {
+  const handleAddToWatchlist = async (suggestion: Suggestion, watched: boolean = true) => {
     try {
-      // 1. Add to watchlist
-      const watchlistRes = await fetch('/api/watchlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: suggestion.tmdbId,
-          media_type: suggestion.mediaType,
-          title: suggestion.movieTitle,
-          release_date: suggestion.year ? `${suggestion.year}-01-01` : null, // Approx
-          poster_path: suggestion.posterPath
-        }),
-      });
-
-      if (watchlistRes.ok) {
-        // 2. Mark suggestion as accepted
-        await fetch('/api/suggestions', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: suggestion.id, status: 'accepted' }),
-        });
-        setSuggestions((prev) => prev.filter((s) => s.id !== suggestion.id));
-        queryClient.invalidateQueries({ queryKey: ["watchlist"] }); // Refresh watchlist
-        alert("Added to watchlist!");
-      } else {
-        alert("Failed to add to watchlist");
-      }
+      await acceptSuggestionMutation.mutateAsync({ suggestion, watched });
     } catch (error) {
       console.error("Failed to accept suggestion:", error);
+      alert("Failed to add to watchlist");
     }
   };
 
@@ -350,8 +206,8 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                 </>
               ) : (
                 <>
-                  <Eyes size={18} className="text-zinc-400 dark:text-zinc-500" />
-                  <span className="text-sm font-medium text-zinc-400 dark:text-zinc-500">Lookup</span>
+                  <Bell size={18} className="text-zinc-400 dark:text-zinc-500" />
+                  <span className="text-sm font-medium text-zinc-400 dark:text-zinc-500">Social</span>
                 </>
               )}
             </div>
@@ -437,18 +293,27 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                       </div>
 
                       {/* Actions */}
-                      <div className="flex flex-col items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
-                          onClick={() => handleAddToWatchlist(suggestion)}
-                          className="p-2 squircle-mask squircle-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-all"
+                          onClick={() => handleAddToWatchlist(suggestion, false)}
+                          className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 transition-all"
+                          title="Watch Later"
                         >
-                          <Plus size={14} weight="bold" />
+                          <Clock size={16} weight="bold" />
+                        </button>
+                        <button
+                          onClick={() => handleAddToWatchlist(suggestion, true)}
+                          className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
+                          title="Watched"
+                        >
+                          <Eyes size={16} weight="bold" />
                         </button>
                         <button
                           onClick={() => handleDismissSuggestion(suggestion.id)}
-                          className="p-2 squircle-mask squircle-lg bg-zinc-100 text-zinc-400 dark:bg-zinc-700 dark:text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-all"
+                          className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all"
+                          title="Dismiss"
                         >
-                          <X size={14} weight="bold" />
+                          <X size={16} weight="bold" />
                         </button>
                       </div>
                     </div>
@@ -487,7 +352,7 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                   </div>
                 </div>
 
-                <div className="h-full overflow-y-auto custom-scrollbar p-2 space-y-2">
+                <div className={`h-full overflow-y-auto custom-scrollbar p-2 ${loadingWatchlist && searchQuery.length <= 2 ? 'flex items-center justify-center' : 'space-y-2'}`}>
                   {/* Search Results State */}
                   {searchQuery.length > 2 ? (
                     isSearching ? (
@@ -551,24 +416,21 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                         <p className="text-sm">No results found for "{searchQuery}"</p>
                       </div>
                     )
+                  ) : loadingWatchlist ? (
+                    <Spinner className="animate-spin text-zinc-400" size={24} />
                   ) : (
-                    // Default to Watchlist
                     <>
                       <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 px-1">From Your Watchlist</h3>
-                      {loadingWatchlist ? (
-                        <div className="flex justify-center py-12">
-                          <Spinner className="animate-spin text-zinc-400" size={24} />
-                        </div>
-                      ) : watchlist.length > 0 ? (
+                      {watchlist.length > 0 ? (
                         watchlist.map((item) => (
                           <div
                             key={item.id}
                             className="flex gap-3 p-3 bg-white dark:bg-zinc-800 squircle-mask squircle-xl group"
                           >
                             <div className="w-10 h-14 bg-zinc-200 squircle-mask squircle-lg shrink-0 overflow-hidden">
-                              {item.poster ? (
+                              {item.posterUrl ? (
                                 <img
-                                  src={`https://image.tmdb.org/t/p/w92${item.poster}`}
+                                  src={item.posterUrl.replace('/w500/', '/w92/')}
                                   alt={item.title}
                                   className="w-full h-full object-cover"
                                 />
@@ -633,10 +495,10 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                   </div>
                   <button
                     onClick={handleAddFriend}
-                    disabled={!email.trim() || !email.includes("@") || addingFriend}
+                    disabled={!email.trim() || !email.includes("@") || addFriendMutation.isPending}
                     className="px-4 squircle-mask squircle-xl bg-black text-white dark:bg-zinc-100 dark:text-zinc-900 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-80 transition-opacity"
                   >
-                    {addingFriend ? '...' : 'Add'}
+                    {addFriendMutation.isPending ? '...' : 'Add'}
                   </button>
                 </div>
 
@@ -672,13 +534,13 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => handleAcceptRequest(request.id)}
-                                    className="p-2 squircle-mask squircle-lg text-emerald-500 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-all"
+                                    className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
                                   >
                                     <Check size={16} weight="bold" />
                                   </button>
                                   <button
                                     onClick={() => handleRemoveFriend(request.id)}
-                                    className="p-2 squircle-mask squircle-lg text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition-all"
+                                    className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all"
                                   >
                                     <X size={16} weight="bold" />
                                   </button>
@@ -715,16 +577,17 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => handleStartSuggest(friend)}
-                                    className="p-2 squircle-mask squircle-lg text-zinc-400 hover:text-blue-500 dark:text-zinc-500 dark:hover:text-blue-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all"
+                                    className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
                                     title="Suggest a movie"
                                   >
-                                    <PaperPlaneTilt size={16} />
+                                    <PaperPlaneTilt size={16} weight="bold" />
                                   </button>
                                   <button
                                     onClick={() => handleRemoveFriend(friend.id)}
-                                    className="p-2 squircle-mask squircle-lg text-zinc-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all"
+                                    className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all"
+                                    title="Remove friend"
                                   >
-                                    <Trash size={16} />
+                                    <Trash size={16} weight="bold" />
                                   </button>
                                 </div>
                               </div>
@@ -759,9 +622,10 @@ export default function SuggestionsModal({ isOpen, onClose }: SuggestionsModalPr
                                 <span className="text-xs text-zinc-400 italic px-2">Pending</span>
                                 <button
                                   onClick={() => handleRemoveFriend(request.id)}
-                                  className="p-2 squircle-mask squircle-lg text-zinc-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-all"
+                                  className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all"
+                                  title="Cancel request"
                                 >
-                                  <X size={16} />
+                                  <X size={16} weight="bold" />
                                 </button>
                               </div>
                             ))}

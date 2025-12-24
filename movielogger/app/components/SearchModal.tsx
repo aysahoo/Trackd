@@ -1,23 +1,41 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { MagnifyingGlass, Spinner, Plus, Check } from "@phosphor-icons/react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { MagnifyingGlass, Spinner, Plus, Check, Eyes, Clock, Trash } from "@phosphor-icons/react";
 import { useSearch } from "../hooks/useSearch";
 import { useDebounce } from "../hooks/useDebounce";
+import { useUpdateStatus, useRemoveFromWatchlist } from "../hooks/useWatchlist";
+import { Movie } from "../lib/data";
 
 interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (movie: any) => Promise<void>;
+  initialQuery?: string;
+  existingMovies?: Movie[];
 }
 
-export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps) {
+export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "", existingMovies = [] }: SearchModalProps) {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 300);
-  const [addingId, setAddingId] = useState<number | null>(null);
+  const [addingId, setAddingId] = useState<{ id: number; type: 'watched' | 'watch_later' } | null>(null);
+  const [actionId, setActionId] = useState<{ id: number; action: 'update' | 'delete' } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const updateStatusMutation = useUpdateStatus();
+  const removeFromWatchlistMutation = useRemoveFromWatchlist();
+
   const { data: results = [], isLoading: loading } = useSearch(debouncedQuery);
+
+  // Create lookup Sets for O(1) status checking
+  const watchedIds = useMemo(() => 
+    new Set(existingMovies.filter(m => m.status === 'watched').map(m => m.tmdbId)), 
+    [existingMovies]
+  );
+  const watchLaterIds = useMemo(() => 
+    new Set(existingMovies.filter(m => m.status === 'watch_later').map(m => m.tmdbId)), 
+    [existingMovies]
+  );
 
   useEffect(() => {
     if (!isOpen) {
@@ -29,10 +47,29 @@ export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps
     }
   }, [isOpen]);
 
-  const handleAdd = async (movie: any) => {
-    setAddingId(movie.id);
-    await onAdd(movie);
+  // Set initial query when modal opens with a key press
+  useEffect(() => {
+    if (isOpen && initialQuery) {
+      setQuery(initialQuery);
+    }
+  }, [isOpen, initialQuery]);
+
+  const handleAdd = async (movie: any, status: 'watched' | 'watch_later') => {
+    setAddingId({ id: movie.id, type: status });
+    await onAdd({ ...movie, status });
     setAddingId(null);
+  };
+
+  const handleUpdateStatus = async (tmdbId: string, newStatus: 'watched' | 'watch_later', itemId: number) => {
+    setActionId({ id: itemId, action: 'update' });
+    await updateStatusMutation.mutateAsync({ tmdbId, status: newStatus });
+    setActionId(null);
+  };
+
+  const handleDelete = async (tmdbId: string, itemId: number) => {
+    setActionId({ id: itemId, action: 'delete' });
+    await removeFromWatchlistMutation.mutateAsync(tmdbId);
+    setActionId(null);
   };
 
 
@@ -77,9 +114,15 @@ export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps
                   <Spinner className="animate-spin text-zinc-400" size={24} />
                   </div>
               ) : results.length > 0 ? (
-                  results.map((item) => (
+                  results.map((item) => {
+                    const itemId = item.id.toString();
+                    const isWatched = watchedIds.has(itemId);
+                    const isWatchLater = watchLaterIds.has(itemId);
+                    const isInLibrary = isWatched || isWatchLater;
+
+                    return (
                   <div key={item.id} className="flex gap-4 p-3 squircle-mask squircle-xl transition-colors group">
-                      <div className="w-10 h-14 bg-zinc-200 squircle-mask squircle-lg shrink-0 overflow-hidden">
+                      <div className="w-10 h-14 bg-zinc-200 squircle-mask squircle-lg shrink-0 overflow-hidden relative">
                       {item.poster_path ? (
                           <img 
                           src={`https://image.tmdb.org/t/p/w92${item.poster_path}`} 
@@ -99,20 +142,93 @@ export default function SearchModal({ isOpen, onClose, onAdd }: SearchModalProps
                           <span className="capitalize">{item.media_type === 'tv' ? 'TV shows' : 'Movie'}</span>
                           <span>•</span>
                           <span>{(item.release_date || item.first_air_date)?.split('-')[0] || 'N/A'}</span>
+                          {isWatched && (
+                            <>
+                              <span>•</span>
+                              <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                                <Eyes size={12} weight="fill" />
+                                Watched
+                              </span>
+                            </>
+                          )}
+                          {isWatchLater && (
+                            <>
+                              <span>•</span>
+                              <span className="text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
+                                <Clock size={12} weight="fill" />
+                                Watch Later
+                              </span>
+                            </>
+                          )}
                       </div>
                       </div>
 
-                      <div className="flex items-center self-center">
-                      <button 
-                          onClick={() => handleAdd(item)}
-                          disabled={addingId === item.id}
-                          className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-[#e5e5e5] dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                          {addingId === item.id ? <Spinner className="animate-spin" size={16} /> : <Plus size={16} weight="bold" />}
-                      </button>
+                      <div className="flex items-center gap-1 self-center">
+                        {isWatched ? (
+                          // Watched: show Clock (move to watch later) and Trash (delete)
+                          <>
+                            <button 
+                              onClick={() => handleUpdateStatus(itemId, 'watch_later', item.id)}
+                              disabled={actionId?.id === item.id}
+                              className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Move to Watch Later"
+                            >
+                              {actionId?.id === item.id && actionId?.action === 'update' ? <Spinner className="animate-spin" size={16} /> : <Clock size={16} weight="bold" />}
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(itemId, item.id)}
+                              disabled={actionId?.id === item.id}
+                              className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Remove from Watchlist"
+                            >
+                              {actionId?.id === item.id && actionId?.action === 'delete' ? <Spinner className="animate-spin" size={16} /> : <Trash size={16} weight="bold" />}
+                            </button>
+                          </>
+                        ) : isWatchLater ? (
+                          // Watch Later: show Eye (mark as watched) and Trash (delete)
+                          <>
+                            <button 
+                              onClick={() => handleUpdateStatus(itemId, 'watched', item.id)}
+                              disabled={actionId?.id === item.id}
+                              className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Mark as Watched"
+                            >
+                              {actionId?.id === item.id && actionId?.action === 'update' ? <Spinner className="animate-spin" size={16} /> : <Eyes size={16} weight="bold" />}
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(itemId, item.id)}
+                              disabled={actionId?.id === item.id}
+                              className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Remove from Watchlist"
+                            >
+                              {actionId?.id === item.id && actionId?.action === 'delete' ? <Spinner className="animate-spin" size={16} /> : <Trash size={16} weight="bold" />}
+                            </button>
+                          </>
+                        ) : (
+                          // Not in library: show Eye (watched) and Clock (watch later)
+                          <>
+                            <button 
+                              onClick={() => handleAdd(item, 'watched')}
+                              disabled={addingId?.id === item.id}
+                              className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Mark as Watched"
+                            >
+                              {addingId?.id === item.id && addingId?.type === 'watched' ? <Spinner className="animate-spin" size={16} /> : <Eyes size={16} weight="bold" />}
+                            </button>
+                            <button 
+                              onClick={() => handleAdd(item, 'watch_later')}
+                              disabled={addingId?.id === item.id}
+                              className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Watch Later"
+                            >
+                              {addingId?.id === item.id && addingId?.type === 'watch_later' ? <Spinner className="animate-spin" size={16} /> : <Clock size={16} weight="bold" />}
+                            </button>
+                          </>
+                        )}
                       </div>
                   </div>
-                  ))
+                    );
+                  })
               ) : query.length > 2 ? (
                   <div className="text-center py-8 text-zinc-400 text-sm">No results found</div>
               ) : null}
