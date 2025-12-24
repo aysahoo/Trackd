@@ -12,6 +12,7 @@ export interface Suggestion {
   mediaType: string;
   year: string;
   posterPath: string;
+  createdAt: number;
 }
 
 export interface Friend {
@@ -54,6 +55,7 @@ async function fetchSuggestions(): Promise<Suggestion[]> {
     mediaType: s.mediaType,
     year: s.year,
     posterPath: s.moviePoster,
+    createdAt: new Date(s.timestamp).getTime(),
   }));
 }
 

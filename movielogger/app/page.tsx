@@ -21,8 +21,17 @@ export default function Home() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [initialSearchKey, setInitialSearchKey] = useState("");
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [lastViewedTime, setLastViewedTime] = useState<number>(0);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("lastViewedSuggestionTime");
+    if (saved) {
+      setLastViewedTime(parseInt(saved));
+    }
+  }, []);
 
   // All data fetches in parallel on page load
   const { data: movies = [], isLoading: loading } = useWatchlist();
@@ -43,6 +52,7 @@ export default function Home() {
   };
 
   const handleSignOut = async () => {
+    setIsLoggingOut(true);
     await authClient.signOut();
     window.location.reload();
   };
@@ -93,6 +103,7 @@ export default function Home() {
       />
       <SuggestionsModal
         isOpen={isSuggestionsOpen}
+
         onClose={() => setIsSuggestionsOpen(false)}
         suggestions={suggestions}
         loadingSuggestions={loadingSuggestions}
@@ -144,7 +155,7 @@ export default function Home() {
                     className="fixed inset-0 z-40" 
                     onClick={() => setIsProfileOpen(false)} 
                   />
-                  <div className="absolute top-full right-0 mt-2 w-48 squircle-mask squircle-2xl bg-[#f2f2f2] dark:bg-zinc-900 drop-shadow-xl p-2 z-50 flex flex-col gap-1">
+                  <div className="absolute top-full right-0 mt-2 w-48 squircle-mask squircle-2xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md p-2 z-50 flex flex-col gap-1">
                     <button 
                       onClick={() => {
                         setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -157,10 +168,11 @@ export default function Home() {
                     </button>
                     <button 
                       onClick={handleSignOut}
-                      className="flex items-center gap-3 px-3 py-2 text-sm font-medium squircle-mask squircle-lg transition-all w-full text-left text-red-600 hover:bg-gray-200 dark:text-red-400 dark:hover:bg-zinc-800"
+                      disabled={isLoggingOut}
+                      className="flex items-center gap-3 px-3 py-2 text-sm font-medium squircle-mask squircle-lg transition-all w-full text-left text-red-600 hover:bg-gray-200 dark:text-red-400 dark:hover:bg-zinc-800 disabled:opacity-50"
                     >
-                      <SignOut size={18} />
-                      Logout
+                      {isLoggingOut ? <Spinner size={18} className="animate-spin" /> : <SignOut size={18} />}
+                      {isLoggingOut ? 'Logging out...' : 'Logout'}
                     </button>
                   </div>
                 </>
@@ -205,11 +217,17 @@ export default function Home() {
           </div>
         </button>
         <button 
-          onClick={() => setIsSuggestionsOpen(true)}
+          onClick={() => {
+          setIsSuggestionsOpen(true);
+          const now = Date.now();
+          setLastViewedTime(now);
+          localStorage.setItem("lastViewedSuggestionTime", now.toString());
+        }}
           className="relative h-[56px] w-[56px] flex-none flex items-center justify-center squircle-mask squircle-3xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-[#e5e5e5] dark:hover:bg-zinc-900 transition-all duration-300"
         >
            <Bell size={22} />
-           {suggestions.length > 0 && (
+
+           {suggestions.some(s => s.createdAt > lastViewedTime) && (
              <span className="absolute top-3.5 right-3.5 w-2 h-2 bg-orange-500 rounded-full" />
            )}
         </button>

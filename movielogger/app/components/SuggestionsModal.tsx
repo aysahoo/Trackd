@@ -39,18 +39,19 @@ export default function SuggestionsModal({
   const [activeTab, setActiveTab] = useState<TabType>("suggestions");
   const [email, setEmail] = useState("");
 
-  // Suggest from watchlist state - uses cached TanStack Query data from homepage
   const { data: watchlist = [], isLoading: loadingWatchlist } = useWatchlist();
   const [suggestingToFriend, setSuggestingToFriend] = useState<Friend | null>(null);
   const [sendingSuggestion, setSendingSuggestion] = useState<string | null>(null);
   const [suggestionSuccess, setSuggestionSuccess] = useState<string | null>(null);
+  const [processingAction, setProcessingAction] = useState<{ id: string; action: 'watchLater' | 'watched' | 'dismiss' } | null>(null);
 
-  // Search state
+  const [friendFeedback, setFriendFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [suggestionFeedback, setSuggestionFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const { data: searchResults = [], isLoading: isSearching } = useSearch(debouncedSearchQuery);
 
-  // Mutations
   const addFriendMutation = useAddFriend();
   const removeFriendMutation = useRemoveFriend();
   const acceptFriendMutation = useAcceptFriend();
@@ -58,7 +59,6 @@ export default function SuggestionsModal({
   const dismissSuggestionMutation = useDismissSuggestion();
   const acceptSuggestionMutation = useAcceptSuggestion();
 
-  // Destructure friends data from props
   const friends = friendsData?.friends ?? [];
   const requests = friendsData?.requests ?? [];
   const sentRequests = friendsData?.sentRequests ?? [];
@@ -80,15 +80,14 @@ export default function SuggestionsModal({
     setSendingSuggestion(movieId);
     setSuggestionSuccess(null);
 
-    // Extract poster path from posterUrl if it exists (for Movie type from watchlist)
+
     let posterPath = movie.poster || movie.poster_path;
     if (!posterPath && movie.posterUrl) {
-      // Extract path from full URL like "https://image.tmdb.org/t/p/w500/abc123.jpg"
+
       const match = movie.posterUrl.match(/\/w\d+(\/.+)$/);
       posterPath = match ? match[1] : null;
     }
 
-    // Determine media type - Movie type uses "type" field with values like "Movie" or "TV shows"
     let mediaType = movie.mediaType || movie.media_type;
     if (!mediaType && movie.type) {
       mediaType = movie.type === "TV shows" ? "tv" : "movie";
@@ -115,7 +114,6 @@ export default function SuggestionsModal({
     }
   };
 
-  // Reset state when closed
   useEffect(() => {
     if (!isOpen) {
       setEmail("");
@@ -126,12 +124,15 @@ export default function SuggestionsModal({
 
   const handleAddFriend = async () => {
     if (email.trim() && email.includes("@")) {
+      setFriendFeedback(null);
       try {
         await addFriendMutation.mutateAsync(email.trim());
         setEmail("");
-        alert("Request sent!");
+        setFriendFeedback({ type: 'success', message: 'Request sent!' });
+        setTimeout(() => setFriendFeedback(null), 1500);
       } catch (error: any) {
-        alert(error.message || "Failed to add friend");
+        setFriendFeedback({ type: 'error', message: error.message || 'Failed to add friend' });
+        setTimeout(() => setFriendFeedback(null), 1500);
       }
     }
   };
@@ -153,19 +154,27 @@ export default function SuggestionsModal({
   };
 
   const handleDismissSuggestion = async (id: string) => {
+    setProcessingAction({ id, action: 'dismiss' });
     try {
       await dismissSuggestionMutation.mutateAsync(id);
     } catch (error) {
       console.error("Failed to dismiss suggestion:", error);
+    } finally {
+      setProcessingAction(null);
     }
   };
 
   const handleAddToWatchlist = async (suggestion: Suggestion, watched: boolean = true) => {
+    setProcessingAction({ id: suggestion.id, action: watched ? 'watched' : 'watchLater' });
+    setSuggestionFeedback(null);
     try {
       await acceptSuggestionMutation.mutateAsync({ suggestion, watched });
     } catch (error) {
       console.error("Failed to accept suggestion:", error);
-      alert("Failed to add to watchlist");
+      setSuggestionFeedback({ type: 'error', message: 'Failed to add to watchlist' });
+      setTimeout(() => setSuggestionFeedback(null), 4000);
+    } finally {
+      setProcessingAction(null);
     }
   };
 
@@ -249,6 +258,16 @@ export default function SuggestionsModal({
           <div className="px-3 pb-3 flex-1 overflow-hidden">
             {activeTab === "suggestions" && !suggestingToFriend ? (
               <div className={`h-full overflow-y-auto scrollbar-hide px-2 pt-2 ${loadingSuggestions || suggestions.length === 0 ? 'pb-2 flex items-center justify-center' : 'pb-12 space-y-2 [mask-image:linear-gradient(to_bottom,black_calc(100%-48px),transparent_100%)]'}`}>
+                {/* Suggestion Error Feedback */}
+                {suggestionFeedback && (
+                  <div className={`mx-2 mb-2 px-3 py-2 squircle-mask squircle-lg text-xs font-medium ${
+                    suggestionFeedback.type === 'success' 
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
+                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                  }`}>
+                    {suggestionFeedback.message}
+                  </div>
+                )}
                 {loadingSuggestions ? (
                   <Spinner className="animate-spin text-zinc-400" size={24} />
                 ) : suggestions.length > 0 ? (
@@ -296,24 +315,51 @@ export default function SuggestionsModal({
                       <div className="flex items-center gap-1 shrink-0">
                         <button
                           onClick={() => handleAddToWatchlist(suggestion, false)}
-                          className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 transition-all"
+                          disabled={processingAction?.id === suggestion.id}
+                          className={`p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 transition-all ${
+                            processingAction?.id === suggestion.id
+                              ? 'opacity-50 cursor-not-allowed'
+                              : 'hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400'
+                          }`}
                           title="Watch Later"
                         >
-                          <Clock size={16} weight="bold" />
+                          {processingAction?.id === suggestion.id && processingAction?.action === 'watchLater' ? (
+                            <Spinner className="animate-spin" size={16} />
+                          ) : (
+                            <Clock size={16} weight="bold" />
+                          )}
                         </button>
                         <button
                           onClick={() => handleAddToWatchlist(suggestion, true)}
-                          className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all"
+                          disabled={processingAction?.id === suggestion.id}
+                          className={`p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 transition-all ${
+                            processingAction?.id === suggestion.id
+                              ? 'opacity-50 cursor-not-allowed'
+                              : 'hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400'
+                          }`}
                           title="Watched"
                         >
-                          <Eyes size={16} weight="bold" />
+                          {processingAction?.id === suggestion.id && processingAction?.action === 'watched' ? (
+                            <Spinner className="animate-spin" size={16} />
+                          ) : (
+                            <Eyes size={16} weight="bold" />
+                          )}
                         </button>
                         <button
                           onClick={() => handleDismissSuggestion(suggestion.id)}
-                          className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all"
+                          disabled={processingAction?.id === suggestion.id}
+                          className={`p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 transition-all ${
+                            processingAction?.id === suggestion.id
+                              ? 'opacity-50 cursor-not-allowed'
+                              : 'hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400'
+                          }`}
                           title="Dismiss"
                         >
-                          <X size={16} weight="bold" />
+                          {processingAction?.id === suggestion.id && processingAction?.action === 'dismiss' ? (
+                            <Spinner className="animate-spin" size={16} />
+                          ) : (
+                            <X size={16} weight="bold" />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -481,25 +527,35 @@ export default function SuggestionsModal({
             ) : (
               <div className="h-full flex flex-col space-y-3">
                 {/* Add Friend Input */}
-                <div className="flex gap-2 p-2">
-                  <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-white dark:bg-zinc-800 squircle-mask squircle-xl">
-                    <UserPlus size={18} className="text-zinc-400 dark:text-zinc-500 shrink-0" />
-                    <input
-                      type="email"
-                      placeholder="Enter email to add friend"
-                      className="flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-white"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleAddFriend()}
-                    />
+                <div className="px-2">
+                  <div className="flex gap-2">
+                    <div className="flex-1 flex items-center gap-3 px-4 py-3 bg-white dark:bg-zinc-800 squircle-mask squircle-xl">
+                      <UserPlus size={18} className="text-zinc-400 dark:text-zinc-500 shrink-0" />
+                      <input
+                        type="email"
+                        placeholder="Enter email to add friend"
+                        className="flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-white"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleAddFriend()}
+                      />
+                    </div>
+                    <button
+                      onClick={handleAddFriend}
+                      disabled={!email.trim() || !email.includes("@") || addFriendMutation.isPending}
+                      className="squircle-mask squircle-xl bg-black text-white dark:bg-zinc-100 dark:text-zinc-900 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-80 transition-all flex items-center justify-center w-[52px] h-[44px]"
+                    >
+                      {addFriendMutation.isPending ? (
+                        <Spinner className="animate-spin" size={16} />
+                      ) : friendFeedback?.type === 'success' ? (
+                        <Check size={16} weight="bold" className="text-emerald-400" />
+                      ) : friendFeedback?.type === 'error' ? (
+                        <X size={16} weight="bold" className="text-red-400" />
+                      ) : (
+                        'Add'
+                      )}
+                    </button>
                   </div>
-                  <button
-                    onClick={handleAddFriend}
-                    disabled={!email.trim() || !email.includes("@") || addFriendMutation.isPending}
-                    className="px-4 squircle-mask squircle-xl bg-black text-white dark:bg-zinc-100 dark:text-zinc-900 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-80 transition-opacity"
-                  >
-                    {addFriendMutation.isPending ? '...' : 'Add'}
-                  </button>
                 </div>
 
                 {/* Friends List */}
