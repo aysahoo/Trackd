@@ -1,18 +1,27 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import { MagnifyingGlass, Spinner, Plus, Check, Eyes, Clock, Trash } from "@phosphor-icons/react";
+import { MagnifyingGlass, Spinner, Plus, Eyes, Clock, Trash, CaretRight, User } from "@phosphor-icons/react";
 import { useSearch } from "../hooks/useSearch";
 import { useDebounce } from "../hooks/useDebounce";
 import { useUpdateStatus, useRemoveFromWatchlist } from "../hooks/useWatchlist";
 import { Movie } from "../lib/data";
+import PersonFilmographyModal from "./PersonFilmographyModal";
 
 interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onAdd: (movie: any) => Promise<void>;
   initialQuery?: string;
   existingMovies?: Movie[];
+}
+
+interface SelectedPerson {
+  id: number;
+  name: string;
+  profile_path: string | null;
+  known_for_department: string;
 }
 
 export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "", existingMovies = [] }: SearchModalProps) {
@@ -20,6 +29,7 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
   const debouncedQuery = useDebounce(query, 300);
   const [addingId, setAddingId] = useState<{ id: number; type: 'watched' | 'watch_later' } | null>(null);
   const [actionId, setActionId] = useState<{ id: number; action: 'update' | 'delete' } | null>(null);
+  const [selectedPerson, setSelectedPerson] = useState<SelectedPerson | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -63,6 +73,7 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
 
   useEffect(() => {
     if (!isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuery("");
       if (containerRef.current) containerRef.current.style.bottom = '32px';
     } else {
@@ -74,10 +85,12 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
 
   useEffect(() => {
     if (isOpen && initialQuery) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuery(initialQuery);
     }
   }, [isOpen, initialQuery]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleAdd = async (movie: any, status: 'watched' | 'watch_later') => {
     setAddingId({ id: movie.id, type: status });
     await onAdd({ ...movie, status });
@@ -143,10 +156,48 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
                   </div>
               ) : results.length > 0 ? (
                   results.map((item) => {
+                    if (item.media_type === 'person') {
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => setSelectedPerson({
+                            id: item.id,
+                            name: item.name || '',
+                            profile_path: (item as { profile_path?: string | null }).profile_path ?? null,
+                            known_for_department: (item as { known_for_department?: string }).known_for_department || 'Acting',
+                          })}
+                          className="w-full flex gap-4 p-3 squircle-mask squircle-xl transition-colors group hover:bg-zinc-100 dark:hover:bg-zinc-800/50 text-left"
+                        >
+                          <div className="w-10 h-10 bg-zinc-200 dark:bg-zinc-700 rounded-full shrink-0 overflow-hidden">
+                            {(item as { profile_path?: string | null }).profile_path ? (
+                              <img 
+                                src={`https://image.tmdb.org/t/p/w92${(item as { profile_path?: string | null }).profile_path}`} 
+                                alt={item.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-zinc-400">
+                                <User size={20} />
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="grow min-w-0 flex flex-col justify-center">
+                            <h3 className="font-medium text-sm text-zinc-900 dark:text-zinc-100 truncate">{item.name}</h3>
+                            <span className="text-xs text-zinc-500">
+                              {(item as { known_for_department?: string }).known_for_department || 'Person'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center self-center text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">
+                            <CaretRight size={16} weight="bold" />
+                          </div>
+                        </button>
+                      );
+                    }
                     const itemId = item.id.toString();
                     const isWatched = watchedIds.has(itemId);
                     const isWatchLater = watchLaterIds.has(itemId);
-                    const isInLibrary = isWatched || isWatchLater;
 
                     return (
                   <div key={item.id} className="flex gap-4 p-3 squircle-mask squircle-xl transition-colors group">
@@ -233,7 +284,6 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
                             </button>
                           </>
                         ) : (
-                          // Not in library: show Eye (watched) and Clock (watch later)
                           <>
                             <button 
                               onClick={() => handleAdd(item, 'watched')}
@@ -264,6 +314,16 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
           </div>
         </div>
       </div>
+      <PersonFilmographyModal
+        isOpen={selectedPerson !== null}
+        onClose={() => setSelectedPerson(null)}
+        personId={selectedPerson?.id ?? null}
+        personName={selectedPerson?.name ?? ''}
+        personImage={selectedPerson?.profile_path ?? null}
+        personRole={selectedPerson?.known_for_department ?? ''}
+        onAdd={onAdd}
+        existingMovies={existingMovies}
+      />
     </>
   );
 }

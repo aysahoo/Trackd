@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, FilmSlate, User, UserPlus, Plus, Check, Trash, Eyes, PaperPlaneTilt, CaretLeft, MagnifyingGlass, Spinner, Clock, Bell } from "@phosphor-icons/react";
+import { X, FilmSlate, User, UserPlus, Check, Trash, Eyes, PaperPlaneTilt, CaretLeft, MagnifyingGlass, Spinner, Clock, Bell } from "@phosphor-icons/react";
 import { useSearch } from "../hooks/useSearch";
 import { useDebounce } from "../hooks/useDebounce";
 import { useWatchlist } from "../hooks/useWatchlist";
@@ -73,6 +73,7 @@ export default function SuggestionsModal({
     setSearchQuery("");
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSendSuggestion = async (movie: any) => {
     if (!suggestingToFriend) return;
 
@@ -130,8 +131,8 @@ export default function SuggestionsModal({
         setEmail("");
         setFriendFeedback({ type: 'success', message: 'Request sent!' });
         setTimeout(() => setFriendFeedback(null), 1500);
-      } catch (error: any) {
-        setFriendFeedback({ type: 'error', message: error.message || 'Failed to add friend' });
+      } catch (error: unknown) {
+        setFriendFeedback({ type: 'error', message: error instanceof Error ? error.message : 'Failed to add friend' });
         setTimeout(() => setFriendFeedback(null), 1500);
       }
     }
@@ -406,7 +407,7 @@ export default function SuggestionsModal({
                         <Spinner className="animate-spin text-zinc-400" size={24} />
                       </div>
                     ) : searchResults.length > 0 ? (
-                      searchResults.map((item: any) => (
+                      searchResults.map((item) => (
                         <div
                           key={item.id}
                           className="flex gap-3 p-3 bg-white dark:bg-zinc-800 squircle-mask squircle-xl group"
@@ -440,16 +441,16 @@ export default function SuggestionsModal({
                           <button
                             type="button"
                             onClick={() => handleSendSuggestion(item)}
-                            disabled={sendingSuggestion === item.id || suggestionSuccess === item.id}
+                            disabled={sendingSuggestion === item.id.toString() || suggestionSuccess === item.id.toString()}
                             className={`self-center px-3 py-1.5 squircle-mask squircle-lg text-xs font-medium transition-all min-w-[70px] flex items-center justify-center gap-1 ${
-                              suggestionSuccess === item.id
+                              suggestionSuccess === item.id.toString()
                                 ? 'bg-emerald-500 text-white'
                                 : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black'
                             }`}
                           >
-                            {sendingSuggestion === item.id ? (
+                            {sendingSuggestion === item.id.toString() ? (
                               <Spinner className="animate-spin" size={14} />
-                            ) : suggestionSuccess === item.id ? (
+                            ) : suggestionSuccess === item.id.toString() ? (
                               <><Check size={14} weight="bold" /> Sent!</>
                             ) : (
                               'Suggest'
@@ -459,7 +460,7 @@ export default function SuggestionsModal({
                       ))
                     ) : (
                       <div className="text-center py-12 text-zinc-400 dark:text-zinc-500">
-                        <p className="text-sm">No results found for "{searchQuery}"</p>
+                        <p className="text-sm">No results found for &quot;{searchQuery}&quot;</p>
                       </div>
                     )
                   ) : loadingWatchlist ? (

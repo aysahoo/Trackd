@@ -11,7 +11,7 @@ async function fetchWatchlist(): Promise<Movie[]> {
     throw new Error("Failed to fetch watchlist");
   }
 
-  return data.data.map((item: any) => ({
+  return data.data.map((item: { id: string; tmdbId: string; title: string; poster: string; year: string; mediaType: string; status: string }) => ({
     id: item.id,
     tmdbId: item.tmdbId,
     title: item.title,
@@ -25,6 +25,7 @@ async function fetchWatchlist(): Promise<Movie[]> {
   }));
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function addToWatchlist(movie: any): Promise<void> {
   const res = await fetch("/api/watchlist", {
     method: "POST",

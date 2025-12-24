@@ -24,14 +24,13 @@ export default function Home() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [initialSearchKey, setInitialSearchKey] = useState("");
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [lastViewedTime, setLastViewedTime] = useState<number>(0);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("lastViewedSuggestionTime");
-    if (saved) {
-      setLastViewedTime(parseInt(saved));
+  const [lastViewedTime, setLastViewedTime] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem("lastViewedSuggestionTime");
+      return saved ? parseInt(saved) : 0;
     }
-  }, []);
+    return 0;
+  });
 
   // All data fetches in parallel on page load
   const { data: movies = [], isLoading: loading } = useWatchlist();
@@ -40,6 +39,7 @@ export default function Home() {
 
   const addToWatchlistMutation = useAddToWatchlist();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleAddMovie = async (movie: any) => {
     await addToWatchlistMutation.mutateAsync(movie);
   };

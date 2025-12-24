@@ -42,7 +42,7 @@ async function fetchSuggestions(): Promise<Suggestion[]> {
     throw new Error("Failed to fetch suggestions");
   }
 
-  return data.data.map((s: any) => ({
+  return data.data.map((s: { id: string; friendName?: string; friendId: string; friendAvatar?: string; movieTitle: string; moviePoster?: string; timestamp: string; tmdbId: string; mediaType: string; year: string }) => ({
     id: s.id,
     friendName: s.friendName || "Unknown",
     friendAvatar: s.friendAvatar || `https://i.pravatar.cc/150?u=${s.friendId}`,
@@ -67,7 +67,7 @@ async function fetchFriends(): Promise<FriendsData> {
     throw new Error("Failed to fetch friends");
   }
 
-  const mapFriend = (f: any): Friend => ({
+  const mapFriend = (f: { id: string; friendId: string; name?: string; email: string; image?: string }): Friend => ({
     id: f.id,
     userId: f.friendId,
     name: f.name || "Unknown",

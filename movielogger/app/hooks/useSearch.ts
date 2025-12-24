@@ -21,7 +21,7 @@ async function searchTMDB(query: string): Promise<TMDBResult[]> {
   if (data.results) {
     return data.results.filter(
       (item: TMDBResult) =>
-        item.media_type === "movie" || item.media_type === "tv"
+        item.media_type === "movie" || item.media_type === "tv" || item.media_type === "person"
     );
   }
 
