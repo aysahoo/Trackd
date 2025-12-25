@@ -2,6 +2,7 @@
 
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import MovieCard from "./components/MovieCard";
 import { MediaType, Movie } from "./lib/data";
 import SearchModal from "./components/SearchModal";
@@ -15,8 +16,15 @@ import { useSuggestions, useFriends } from "./hooks/useSocial";
 
 export default function Home() {
   const { data: session, isPending } = authClient.useSession();
+  const router = useRouter();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const [activeFilter, setActiveFilter] = useState<MediaType | "All">("All");
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.push("/signin");
+    }
+  }, [session, isPending, router]);
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);

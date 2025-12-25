@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import db from "@/db";
-import { user, friend } from "@/db/schema";
+import { user, friend, invitation } from "@/db/schema";
 import { nanoid } from "nanoid";
 import { NextResponse } from "next/server";
 import { eq, and, or, ne } from "drizzle-orm";
@@ -19,6 +19,27 @@ export async function GET(req: Request) {
     }
 
     try {
+        // Check for pending invitations
+        const pendingInvitations = await db.select()
+            .from(invitation)
+            .where(eq(invitation.email, session.user.email));
+
+        if (pendingInvitations.length > 0) {
+            for (const invite of pendingInvitations) {
+                // Create friend request
+                const id = nanoid();
+                await db.insert(friend).values({
+                    id,
+                    userId: invite.inviterId,
+                    friendId: session.user.id,
+                    status: "pending",
+                });
+
+                // Remove invitation
+                await db.delete(invitation).where(eq(invitation.id, invite.id));
+            }
+        }
+
         const allFriendships = await db.select({
             id: friend.id,
             friendId: user.id,
@@ -77,37 +98,64 @@ export async function POST(req: Request) {
         if (email === session.user.email) {
             return NextResponse.json({ success: false, error: "Cannot add yourself" }, { status: 400 });
         }
+
         const [targetUser] = await db.select().from(user).where(eq(user.email, email));
 
-        if (!targetUser) {
-            return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
+        if (targetUser) {
+            // User exists - Create direct friend request (No Email)
+            const existingFriendship = await db.select()
+                .from(friend)
+                .where(
+                    or(
+                        and(eq(friend.userId, session.user.id), eq(friend.friendId, targetUser.id)),
+                        and(eq(friend.userId, targetUser.id), eq(friend.friendId, session.user.id))
+                    )
+                );
+
+            if (existingFriendship.length > 0) {
+                return NextResponse.json({ success: false, error: "Friendship already exists" }, { status: 400 });
+            }
+
+            const id = nanoid();
+            await db.insert(friend).values({
+                id,
+                userId: session.user.id,
+                friendId: targetUser.id,
+                status: "pending",
+            });
+
+            return NextResponse.json({ success: true, message: "Request sent" });
         }
-        const existing = await db.select()
-            .from(friend)
+
+        // User does not exist - Create Invitation and Send Email
+        const existingInvite = await db.select()
+            .from(invitation)
             .where(
-                or(
-                    and(eq(friend.userId, session.user.id), eq(friend.friendId, targetUser.id)),
-                    and(eq(friend.userId, targetUser.id), eq(friend.friendId, session.user.id))
+                and(
+                    eq(invitation.inviterId, session.user.id),
+                    eq(invitation.email, email)
                 )
             );
 
-        if (existing.length > 0) {
-            return NextResponse.json({ success: false, error: "Friendship already exists" }, { status: 400 });
+        if (existingInvite.length > 0) {
+            return NextResponse.json({ success: false, error: "Invitation already sent" }, { status: 400 });
         }
 
         const id = nanoid();
-        await db.insert(friend).values({
+        await db.insert(invitation).values({
             id,
-            userId: session.user.id,
-            friendId: targetUser.id,
+            inviterId: session.user.id,
+            email,
             status: "pending",
         });
 
         try {
+            const inviteLink = `https://movie-logger-two.vercel.app/`;
+
             await resend.emails.send({
                 from: "MovieLogger <info@movielogger.adasrhanatia.xyz>",
-                to: targetUser.email,
-                subject: "New Friend Request",
+                to: email,
+                subject: "Join MovieLogger",
                 html: `
                     <!DOCTYPE html>
                     <html>
@@ -123,14 +171,14 @@ export async function POST(req: Request) {
                                             <img src="${session.user.image || 'https://movielogger.adasrhanatia.xyz/placeholder-user.jpg'}" alt="${session.user.name}" style="width: 80px; height: 80px; object-fit: cover; background-color: #333333; border: 2px solid #333333;">
                                         </div>
                                         <h1 style="font-size: 20px; font-weight: 600; color: #ffffff; margin: 0 0 12px 0; letter-spacing: -0.3px;">
-                                            Connect with ${session.user.name}
+                                            Join ${session.user.name} on MovieLogger
                                         </h1>
                                         <p style="font-size: 15px; color: #888888; line-height: 1.5; margin: 0 0 24px 0;">
-                                            ${session.user.name} has invited you to be friends on MovieLogger. Connect to see their suggestions.
+                                            ${session.user.name} has invited you to join MovieLogger to share movie suggestions.
                                         </p>
                                         <div>
-                                            <a href="https://movie-logger-two.vercel.app/" style="background-color: #000000; color: #ffffff; padding: 12px 28px; border-radius: 9999px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-block; border: 1px solid #ffffff;">
-                                                Open MovieLogger
+                                            <a href="${inviteLink}" style="background-color: #ffffff; color: #000000; padding: 12px 28px; border-radius: 9999px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-block;">
+                                                Accept Invitation
                                             </a>
                                         </div>
                                     </div>
@@ -141,11 +189,13 @@ export async function POST(req: Request) {
                     </html>
                 `
             });
+            return NextResponse.json({ success: true, message: "Invitation sent" });
         } catch (error) {
-            console.error("Failed to send friend request email:", error);
+            console.error("Failed to send invite email:", error);
+            // Return success because we successfully created the invite, even if email failed
+            return NextResponse.json({ success: true, message: "Invitation created (email failed)" });
         }
 
-        return NextResponse.json({ success: true, message: "Request sent" });
     } catch (error) {
         console.error("Failed to add friend:", error);
         return NextResponse.json({ success: false, error: "Failed to add friend" }, { status: 500 });
