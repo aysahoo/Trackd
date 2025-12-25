@@ -1,4 +1,4 @@
-export type MediaType = 'Movie' | 'TV shows' | 'Anime';
+export type MediaType = 'Movie' | 'TV shows';
 export type WatchStatus = 'watched' | 'watch_later';
 
 export interface Movie {

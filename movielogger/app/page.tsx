@@ -2,7 +2,9 @@
 
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+
 import MovieCard from "./components/MovieCard";
 import { MediaType, Movie } from "./lib/data";
 import SearchModal from "./components/SearchModal";
@@ -18,7 +20,7 @@ export default function Home() {
   const { data: session, isPending } = authClient.useSession();
   const router = useRouter();
   const { theme, setTheme, resolvedTheme } = useTheme();
-  const [activeFilter, setActiveFilter] = useState<MediaType | "All">("All");
+  const [activeFilter, setActiveFilter] = useState<MediaType | "All" | "Explore">("All");
 
   useEffect(() => {
     if (!isPending && !session) {
@@ -69,7 +71,7 @@ export default function Home() {
     ? movies
     : movies.filter(m => m.type === activeFilter);
 
-  const filters: (MediaType | "All")[] = ["All", "Movie", "TV shows", "Anime"];
+  const filters: (MediaType | "All")[] = ["All", "Movie", "TV shows"];
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -127,6 +129,25 @@ export default function Home() {
       <header className="max-w-[1400px] mx-auto mb-10">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide min-w-0 pr-4">
+            {/* Logo - Explore view */}
+            <button
+              onClick={() => setActiveFilter("Explore")}
+              className={`flex-none w-9 h-9 squircle-mask squircle-2xl flex items-center justify-center transition-colors ${
+                activeFilter === "Explore"
+                  ? "bg-[#FF5924]"
+                  : "bg-[#f2f2f2] dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800"
+              }`}
+            >
+              <Image
+                src={activeFilter === "Explore" 
+                  ? '/white_eyes.png'
+                  : '/orange_eyes.png'}
+                alt="Explore"
+                width={20}
+                height={20}
+                className="w-5 h-5"
+              />
+            </button>
             {filters.map((filter) => (
               <button
                 key={filter}
@@ -197,8 +218,14 @@ export default function Home() {
         </div>
       </header>
 
+
       <main className="max-w-[1400px] mx-auto">
-        {loading ? (
+        {activeFilter === "Explore" ? (
+          // Explore view - empty for now
+          <div className="text-center py-20 text-zinc-500">
+            {/* Explore content will go here */}
+          </div>
+        ) : loading ? (
           <div className="flex justify-center py-20">
             <Spinner className="animate-spin text-zinc-400" size={24} />
           </div>
@@ -238,7 +265,7 @@ export default function Home() {
           <Bell size={22} />
 
           {suggestions.some(s => s.createdAt > lastViewedTime) && (
-            <span className="absolute top-3.5 right-3.5 w-2 h-2 bg-orange-500 rounded-full" />
+            <span className="absolute top-3.5 right-3.5 w-2 h-2 bg-[#FF5924] rounded-full" />
           )}
         </button>
       </div>
