@@ -195,6 +195,27 @@ export const suggestion = pgTable(
   ],
 );
 
+export const invitation = pgTable(
+  "invitation",
+  {
+    id: text("id").primaryKey(),
+    inviterId: text("inviter_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    status: text("status").default("pending"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("invitation_email_idx").on(table.email)],
+);
+
+export const invitationRelations = relations(invitation, ({ one }) => ({
+  inviter: one(user, {
+    fields: [invitation.inviterId],
+    references: [user.id],
+  }),
+}));
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -203,6 +224,7 @@ export const userRelations = relations(user, ({ many }) => ({
   friendsReceived: many(friend, { relationName: "friends_received" }),
   suggestionsReceived: many(suggestion, { relationName: "suggestions_received" }),
   suggestionsSent: many(suggestion, { relationName: "suggestions_sent" }),
+  invitationsSent: many(invitation),
 }));
 
 export const suggestionRelations = relations(suggestion, ({ one }) => ({
