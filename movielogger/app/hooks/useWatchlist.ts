@@ -11,15 +11,15 @@ async function fetchWatchlist(): Promise<Movie[]> {
     throw new Error("Failed to fetch watchlist");
   }
 
-  return data.data.map((item: { id: string; tmdbId: string; title: string; poster: string; year: string; mediaType: string; status: string }) => ({
+  return data.data.map((item: { id: string; tmdbId: string; title: string; poster: string; year: string; mediaType: string; status: string; rating: number | null }) => ({
     id: item.id,
     tmdbId: item.tmdbId,
     title: item.title,
     posterUrl: `https://image.tmdb.org/t/p/w500${item.poster}`,
-    rating: 0,
+    rating: item.rating || 0,
     year: parseInt(item.year) || new Date().getFullYear(),
     description: "",
-    type: item.mediaType === "tv" ? "TV shows" : "Movie",
+    type: item.mediaType === "anime" ? "Anime" : (item.mediaType === "tv" ? "TV shows" : "Movie"),
     status: item.status === "watch_later" ? "watch_later" : "watched",
     isStaffPick: false,
   }));
@@ -57,11 +57,11 @@ export function useAddToWatchlist() {
   });
 }
 
-async function updateWatchlistStatus({ tmdbId, status }: { tmdbId: string; status: string }): Promise<void> {
+async function updateWatchlistStatus({ tmdbId, status, rating }: { tmdbId: string; status?: string; rating?: number }): Promise<void> {
   const res = await fetch("/api/watchlist", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ tmdbId, status }),
+    body: JSON.stringify({ tmdbId, status, rating }),
   });
 
   if (!res.ok) {

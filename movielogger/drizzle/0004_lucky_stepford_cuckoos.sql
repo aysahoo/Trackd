@@ -1,0 +1,1 @@
+ALTER TABLE "watch_item" ADD COLUMN "rating" integer;

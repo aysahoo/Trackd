@@ -1,7 +1,7 @@
 "use client";
 
 import { Movie } from "../lib/data";
-import { Clock, Eyes, Spinner } from "@phosphor-icons/react";
+import { Clock, Eyes, Spinner, Star } from "@phosphor-icons/react";
 import { useUpdateStatus } from "../hooks/useWatchlist";
 import { useState } from "react";
 
@@ -25,7 +25,7 @@ export default function MovieCard({ movie, view = "grid", onOpenDetails }: Movie
 
   if (view === "list") {
     return (
-      <div 
+      <div
         onClick={() => onOpenDetails(movie)}
         className="squircle-mask squircle-2xl bg-[#f2f2f2] dark:bg-zinc-900 cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-800 transition-all duration-200 overflow-hidden"
       >
@@ -35,6 +35,12 @@ export default function MovieCard({ movie, view = "grid", onOpenDetails }: Movie
             alt={movie.title}
             className="w-full h-full object-cover"
           />
+          {movie.rating > 0 && (
+            <div className="absolute top-2 right-2 px-1.5 py-0.5 squircle-mask squircle-md bg-black/60 backdrop-blur-sm flex items-center gap-1">
+              <Star size={12} weight="fill" className="text-yellow-400" />
+              <span className="text-[10px] font-bold text-white">{movie.rating}</span>
+            </div>
+          )}
           {movie.status === "watch_later" && (
             <button
               onClick={handleMarkAsWatched}
@@ -59,7 +65,7 @@ export default function MovieCard({ movie, view = "grid", onOpenDetails }: Movie
   }
 
   return (
-    <div 
+    <div
       onClick={() => onOpenDetails(movie)}
       className="relative overflow-hidden aspect-[2/3] squircle-mask squircle-2xl cursor-pointer"
     >
@@ -68,6 +74,12 @@ export default function MovieCard({ movie, view = "grid", onOpenDetails }: Movie
         alt={movie.title}
         className="w-full h-full object-cover"
       />
+      {movie.rating > 0 && (
+        <div className="absolute top-2 right-2 px-1.5 py-0.5 squircle-mask squircle-md bg-black/60 backdrop-blur-sm flex items-center gap-1">
+          <Star size={12} weight="fill" className="text-yellow-400" />
+          <span className="text-[10px] font-bold text-white">{movie.rating}</span>
+        </div>
+      )}
       {movie.status === "watch_later" && (
         <button
           onClick={handleMarkAsWatched}

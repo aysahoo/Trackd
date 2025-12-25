@@ -5,6 +5,9 @@ import { user, friend } from "@/db/schema";
 import { nanoid } from "nanoid";
 import { NextResponse } from "next/server";
 import { eq, and, or, ne } from "drizzle-orm";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function GET(req: Request) {
     const session = await auth.api.getSession({
@@ -99,6 +102,48 @@ export async function POST(req: Request) {
             friendId: targetUser.id,
             status: "pending",
         });
+
+        try {
+            await resend.emails.send({
+                from: "MovieLogger <info@movielogger.adasrhanatia.xyz>",
+                to: targetUser.email,
+                subject: "New Friend Request",
+                html: `
+                    <!DOCTYPE html>
+                    <html>
+                    <body style="margin: 0; padding: 20px; background-color: #000000; font-family: sans-serif;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #000000; width: 100%;">
+                            <tr>
+                                <td align="center">
+                                    <div style="max-width: 480px; margin: 0 auto; background-color: #111111; padding: 24px; text-align: center;">
+                                        <div style="font-size: 24px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; margin-bottom: 24px;">
+                                            MovieLogger
+                                        </div>
+                                        <div style="margin-bottom: 20px;">
+                                            <img src="${session.user.image || 'https://movielogger.adasrhanatia.xyz/placeholder-user.jpg'}" alt="${session.user.name}" style="width: 80px; height: 80px; object-fit: cover; background-color: #333333; border: 2px solid #333333;">
+                                        </div>
+                                        <h1 style="font-size: 20px; font-weight: 600; color: #ffffff; margin: 0 0 12px 0; letter-spacing: -0.3px;">
+                                            Connect with ${session.user.name}
+                                        </h1>
+                                        <p style="font-size: 15px; color: #888888; line-height: 1.5; margin: 0 0 24px 0;">
+                                            ${session.user.name} has invited you to be friends on MovieLogger. Connect to see their suggestions.
+                                        </p>
+                                        <div>
+                                            <a href="https://movie-logger-two.vercel.app/" style="background-color: #000000; color: #ffffff; padding: 12px 28px; border-radius: 9999px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-block; border: 1px solid #ffffff;">
+                                                Open MovieLogger
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </body>
+                    </html>
+                `
+            });
+        } catch (error) {
+            console.error("Failed to send friend request email:", error);
+        }
 
         return NextResponse.json({ success: true, message: "Request sent" });
     } catch (error) {

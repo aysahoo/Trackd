@@ -1,7 +1,7 @@
 "use client";
 
 import { Movie } from "../lib/data";
-import { X, Eyes, Clock, Trash, Spinner } from "@phosphor-icons/react";
+import { X, Eyes, Clock, Trash, Spinner, Star } from "@phosphor-icons/react";
 import { useUpdateStatus, useRemoveFromWatchlist } from "../hooks/useWatchlist";
 import { useState } from "react";
 
@@ -14,7 +14,8 @@ interface MovieDetailsModalProps {
 export default function MovieDetailsModal({ movie, isOpen, onClose }: MovieDetailsModalProps) {
   const updateStatusMutation = useUpdateStatus();
   const removeFromWatchlistMutation = useRemoveFromWatchlist();
-  const [actionLoading, setActionLoading] = useState<'status' | 'delete' | null>(null);
+  const [actionLoading, setActionLoading] = useState<'status' | 'delete' | 'rating' | null>(null);
+  const [hoverRating, setHoverRating] = useState<number | null>(null);
 
   if (!movie) return null;
 
@@ -24,6 +25,12 @@ export default function MovieDetailsModal({ movie, isOpen, onClose }: MovieDetai
     await updateStatusMutation.mutateAsync({ tmdbId: movie.tmdbId, status: newStatus });
     setActionLoading(null);
     onClose();
+  };
+
+  const handleRate = async (rating: number) => {
+    setActionLoading('rating');
+    await updateStatusMutation.mutateAsync({ tmdbId: movie.tmdbId, rating });
+    setActionLoading(null);
   };
 
   const handleDelete = async () => {
@@ -36,14 +43,14 @@ export default function MovieDetailsModal({ movie, isOpen, onClose }: MovieDetai
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className={`fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div className={`fixed inset-0 z-[101] flex items-center justify-center p-4 transition-all duration-300 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
-        <div 
+        <div
           className={`w-full max-w-xs sm:max-w-sm bg-[#f2f2f2]/95 dark:bg-zinc-900/95 backdrop-blur-md squircle-mask squircle-3xl overflow-hidden transition-transform duration-300 ${isOpen ? 'scale-100' : 'scale-95'}`}
           onClick={(e) => e.stopPropagation()}
         >
@@ -65,9 +72,9 @@ export default function MovieDetailsModal({ movie, isOpen, onClose }: MovieDetai
             <div className="absolute bottom-3 left-3">
               <div className={`px-3 py-1.5 squircle-mask squircle-lg text-xs font-medium flex items-center gap-1.5 ${
                 movie.status === 'watched' 
-                  ? 'bg-emerald-500 text-white' 
+                  ? 'bg-emerald-500 text-white'
                   : 'bg-amber-500 text-white'
-              }`}>
+                }`}>
                 {movie.status === 'watched' ? (
                   <><Eyes size={12} weight="fill" /> Watched</>
                 ) : (
@@ -87,6 +94,29 @@ export default function MovieDetailsModal({ movie, isOpen, onClose }: MovieDetai
               </p>
             </div>
 
+            {/* Rating */}
+            <div className="flex gap-1.5 justify-center py-2 bg-white/50 dark:bg-zinc-800/50 squircle-mask squircle-xl">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => handleRate(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(null)}
+                  disabled={actionLoading === 'rating'}
+                  className="focus:outline-none transition-transform active:scale-90 hover:scale-110"
+                >
+                  <Star
+                    size={24}
+                    weight={(hoverRating !== null ? star <= hoverRating : star <= movie.rating) ? "fill" : "regular"}
+                    className={`${(hoverRating !== null ? star <= hoverRating : star <= movie.rating)
+                        ? "text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]"
+                        : "text-gray-300 dark:text-zinc-600"
+                      } transition-all duration-200`}
+                  />
+                </button>
+              ))}
+            </div>
+
             {/* Actions */}
             <div className="flex gap-2">
               <button
@@ -96,7 +126,7 @@ export default function MovieDetailsModal({ movie, isOpen, onClose }: MovieDetai
                   movie.status === 'watched'
                     ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50'
                     : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50'
-                }`}
+                  }`}
               >
                 {actionLoading === 'status' ? (
                   <Spinner className="animate-spin" size={16} />

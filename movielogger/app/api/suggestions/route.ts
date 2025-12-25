@@ -78,6 +78,52 @@ export async function POST(req: Request) {
             status: "pending",
         });
 
+        // Fetch recipient details to send email
+        const [recipient] = await db.select().from(user).where(eq(user.id, friendId));
+
+        if (recipient && recipient.email) {
+            const { Resend } = await import("resend");
+            const resend = new Resend(process.env.RESEND_API_KEY);
+
+            await resend.emails.send({
+                from: "MovieLogger <info@movielogger.adasrhanatia.xyz>",
+                to: recipient.email,
+                subject: `${session.user.name} suggested a ${mediaType === 'tv' ? 'TV show' : 'movie'}`,
+                html: `
+                    <!DOCTYPE html>
+                    <html>
+                    <body style="margin: 0; padding: 20px; background-color: #000000; font-family: sans-serif;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #000000; width: 100%;">
+                            <tr>
+                                <td align="center">
+                                    <div style="max-width: 480px; margin: 0 auto; background-color: #111111; padding: 24px; text-align: center;">
+                                        <div style="font-size: 24px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; margin-bottom: 24px;">
+                                            MovieLogger
+                                        </div>
+                                        <div style="margin-bottom: 20px;">
+                                            <img src="${poster ? (poster.startsWith('http') ? poster : `https://image.tmdb.org/t/p/w500${poster}`) : 'https://movielogger.adasrhanatia.xyz/placeholder-poster.jpg'}" alt="${title}" style="width: 120px; height: 180px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                                        </div>
+                                        <h1 style="font-size: 20px; font-weight: 600; color: #ffffff; margin: 0 0 12px 0; letter-spacing: -0.3px;">
+                                            ${session.user.name} suggested a ${mediaType === 'tv' ? 'TV show' : 'movie'}
+                                        </h1>
+                                        <p style="font-size: 15px; color: #888888; line-height: 1.5; margin: 0 0 24px 0;">
+                                            ${session.user.name} thinks you'll like <strong>${title}</strong> (${year}). Check it out on MovieLogger.
+                                        </p>
+                                        <div>
+                                            <a href="https://movie-logger-two.vercel.app/" style="background-color: #000000; color: #ffffff; padding: 12px 28px; border-radius: 9999px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-block; border: 1px solid #ffffff;">
+                                                View Suggestion
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </body>
+                    </html>
+                `
+            });
+        }
+
         return NextResponse.json({ success: true, message: "Suggestion sent" });
     } catch (error) {
         console.error("Failed to send suggestion:", error);
