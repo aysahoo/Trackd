@@ -19,7 +19,7 @@ async function fetchWatchlist(): Promise<Movie[]> {
     rating: item.rating || 0,
     year: parseInt(item.year) || new Date().getFullYear(),
     description: "",
-    type: item.mediaType === "tv" || item.mediaType === "anime" ? "TV shows" : "Movie",
+    type: item.mediaType === "anime" ? "Anime" : (item.mediaType === "tv" ? "TV shows" : "Movie"),
     status: item.status === "watch_later" ? "watch_later" : "watched",
     isStaffPick: false,
   }));

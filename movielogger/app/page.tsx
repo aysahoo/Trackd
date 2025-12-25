@@ -71,7 +71,7 @@ export default function Home() {
     ? movies
     : movies.filter(m => m.type === activeFilter);
 
-  const filters: (MediaType | "All")[] = ["All", "Movie", "TV shows"];
+  const filters: (MediaType | "All")[] = ["All", "Movie", "TV shows", "Anime"];
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
