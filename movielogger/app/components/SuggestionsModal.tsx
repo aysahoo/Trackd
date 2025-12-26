@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, FilmSlate, User, UserPlus, Check, Trash, Eyes, PaperPlaneTilt, CaretLeft, MagnifyingGlass, Spinner, Clock, Bell } from "@phosphor-icons/react";
+import { X, FilmSlate, User, UserPlus, Check, Trash, Eyes, PaperPlaneTilt, CaretLeft, MagnifyingGlass, Spinner, Clock, Users } from "@phosphor-icons/react";
 import { useSearch } from "../hooks/useSearch";
 import { useDebounce } from "../hooks/useDebounce";
 import { useWatchlist } from "../hooks/useWatchlist";
@@ -41,8 +41,8 @@ export default function SuggestionsModal({
 
   const { data: watchlist = [], isLoading: loadingWatchlist } = useWatchlist();
   const [suggestingToFriend, setSuggestingToFriend] = useState<Friend | null>(null);
-  const [sendingSuggestion, setSendingSuggestion] = useState<string | null>(null);
-  const [suggestionSuccess, setSuggestionSuccess] = useState<string | null>(null);
+  const [sendingSuggestions, setSendingSuggestions] = useState<Set<string>>(new Set());
+  const [suggestionSuccesses, setSuggestionSuccesses] = useState<Set<string>>(new Set());
   const [processingAction, setProcessingAction] = useState<{ id: string; action: 'watchLater' | 'watched' | 'dismiss' } | null>(null);
 
   const [friendFeedback, setFriendFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -77,9 +77,8 @@ export default function SuggestionsModal({
   const handleSendSuggestion = async (movie: any) => {
     if (!suggestingToFriend) return;
 
-    const movieId = movie.tmdbId || movie.id;
-    setSendingSuggestion(movieId);
-    setSuggestionSuccess(null);
+    const movieId = String(movie.tmdbId || movie.id);
+    setSendingSuggestions(prev => new Set(prev).add(movieId));
 
 
     let posterPath = movie.poster || movie.poster_path;
@@ -104,14 +103,22 @@ export default function SuggestionsModal({
         poster: posterPath,
       });
 
-      setSuggestionSuccess(movieId);
+      setSuggestionSuccesses(prev => new Set(prev).add(movieId));
       setTimeout(() => {
-        setSuggestionSuccess(null);
+        setSuggestionSuccesses(prev => {
+          const next = new Set(prev);
+          next.delete(movieId);
+          return next;
+        });
       }, 1500);
     } catch (error) {
       console.error("Failed to send suggestion:", error);
     } finally {
-      setSendingSuggestion(null);
+      setSendingSuggestions(prev => {
+        const next = new Set(prev);
+        next.delete(movieId);
+        return next;
+      });
     }
   };
 
@@ -216,7 +223,7 @@ export default function SuggestionsModal({
                 </>
               ) : (
                 <>
-                  <Bell size={18} className="text-zinc-400 dark:text-zinc-500" />
+                  <Users size={18} className="text-zinc-400 dark:text-zinc-500" />
                   <span className="text-sm font-medium text-zinc-400 dark:text-zinc-500">Social</span>
                 </>
               )}
@@ -441,16 +448,18 @@ export default function SuggestionsModal({
                           <button
                             type="button"
                             onClick={() => handleSendSuggestion(item)}
-                            disabled={sendingSuggestion === item.id.toString() || suggestionSuccess === item.id.toString()}
+                            disabled={sendingSuggestions.has(item.id.toString()) || suggestionSuccesses.has(item.id.toString())}
                             className={`self-center px-3 py-1.5 squircle-mask squircle-lg text-xs font-medium transition-all min-w-[70px] flex items-center justify-center gap-1 ${
-                              suggestionSuccess === item.id.toString()
+                              suggestionSuccesses.has(item.id.toString())
                                 ? 'bg-emerald-500 text-white'
-                                : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black'
+                                : sendingSuggestions.has(item.id.toString())
+                                  ? 'bg-black text-white dark:bg-white dark:text-black'
+                                  : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black active:scale-95 active:bg-black active:text-white dark:active:bg-white dark:active:text-black'
                             }`}
                           >
-                            {sendingSuggestion === item.id.toString() ? (
+                            {sendingSuggestions.has(item.id.toString()) ? (
                               <Spinner className="animate-spin" size={14} />
-                            ) : suggestionSuccess === item.id.toString() ? (
+                            ) : suggestionSuccesses.has(item.id.toString()) ? (
                               <><Check size={14} weight="bold" /> Sent!</>
                             ) : (
                               'Suggest'
@@ -498,16 +507,18 @@ export default function SuggestionsModal({
                             <button
                               type="button"
                               onClick={() => handleSendSuggestion(item)}
-                              disabled={sendingSuggestion === (item.tmdbId || item.id) || suggestionSuccess === (item.tmdbId || item.id)}
+                              disabled={sendingSuggestions.has(String(item.tmdbId || item.id)) || suggestionSuccesses.has(String(item.tmdbId || item.id))}
                               className={`self-center px-3 py-1.5 squircle-mask squircle-lg text-xs font-medium transition-all min-w-[70px] flex items-center justify-center gap-1 ${
-                                suggestionSuccess === (item.tmdbId || item.id)
+                                suggestionSuccesses.has(String(item.tmdbId || item.id))
                                   ? 'bg-emerald-500 text-white'
-                                  : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black'
+                                  : sendingSuggestions.has(String(item.tmdbId || item.id))
+                                    ? 'bg-black text-white dark:bg-white dark:text-black'
+                                    : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black active:scale-95 active:bg-black active:text-white dark:active:bg-white dark:active:text-black'
                               }`}
                             >
-                              {sendingSuggestion === (item.tmdbId || item.id) ? (
+                              {sendingSuggestions.has(String(item.tmdbId || item.id)) ? (
                                 <Spinner className="animate-spin" size={14} />
-                              ) : suggestionSuccess === (item.tmdbId || item.id) ? (
+                              ) : suggestionSuccesses.has(String(item.tmdbId || item.id)) ? (
                                 <><Check size={14} weight="bold" /> Sent!</>
                               ) : (
                                 'Suggest'

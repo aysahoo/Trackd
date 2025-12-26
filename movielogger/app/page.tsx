@@ -11,7 +11,7 @@ import SearchModal from "./components/SearchModal";
 import SuggestionsModal from "./components/SuggestionsModal";
 import MovieDetailsModal from "./components/MovieDetailsModal";
 import { authClient } from "@/lib/auth-client";
-import { GoogleLogo, MagnifyingGlass, Plus, Moon, Sun, SignOut, Bell, Spinner } from "@phosphor-icons/react";
+import { GoogleLogo, MagnifyingGlass, Plus, Moon, Sun, SignOut, Users, Spinner } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
 import { useWatchlist, useAddToWatchlist } from "./hooks/useWatchlist";
 import { useSuggestions, useFriends } from "./hooks/useSocial";
@@ -260,9 +260,9 @@ export default function Home() {
             refetchSuggestions();
             refetchFriends();
           }}
-          className="relative h-[56px] w-[56px] flex-none flex items-center justify-center squircle-mask squircle-3xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-[#e5e5e5] dark:hover:bg-zinc-900 transition-all duration-300"
+          className="relative h-[56px] w-[56px] flex-none flex items-center justify-center squircle-mask squircle-3xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-[#e5e5e5] dark:hover:bg-zinc-900 active:scale-95 active:bg-[#d9d9d9] dark:active:bg-zinc-800 transition-all duration-300"
         >
-          <Bell size={22} />
+          <Users size={22} />
 
           {suggestions.some(s => s.createdAt > lastViewedTime) && (
             <span className="absolute top-3.5 right-3.5 w-2 h-2 bg-[#FF5924] rounded-full" />
