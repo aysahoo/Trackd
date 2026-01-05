@@ -132,20 +132,28 @@ export default function Home() {
             {/* Logo - Explore view */}
             <button
               onClick={() => setActiveFilter("Explore")}
-              className={`flex-none w-9 h-9 squircle-mask squircle-2xl flex items-center justify-center transition-colors ${
+              className={`flex-none w-9 h-9 squircle-mask squircle-2xl flex items-center justify-center transition-colors relative ${
                 activeFilter === "Explore"
                   ? "bg-[#FF5924]"
                   : "bg-[#f2f2f2] dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800"
               }`}
             >
+              {/* Both images rendered but only one visible - ensures instant swap */}
               <Image
-                src={activeFilter === "Explore" 
-                  ? '/white_eyes.png'
-                  : '/orange_eyes.png'}
+                src="/orange_eyes.png"
                 alt="Explore"
                 width={20}
                 height={20}
-                className="w-5 h-5"
+                priority
+                className={`w-5 h-5 transition-opacity ${activeFilter === "Explore" ? 'opacity-0 absolute' : 'opacity-100'}`}
+              />
+              <Image
+                src="/white_eyes.png"
+                alt="Explore"
+                width={20}
+                height={20}
+                priority
+                className={`w-5 h-5 transition-opacity absolute ${activeFilter === "Explore" ? 'opacity-100' : 'opacity-0'}`}
               />
             </button>
             {filters.map((filter) => (

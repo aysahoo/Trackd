@@ -49,6 +49,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preload" href="/white_eyes.png" as="image" />
+        <link rel="preload" href="/orange_eyes.png" as="image" />
+        <link rel="preload" href="/logo_light.png" as="image" />
+        <link rel="preload" href="/logo_dark.png" as="image" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground min-h-screen`}
       >
