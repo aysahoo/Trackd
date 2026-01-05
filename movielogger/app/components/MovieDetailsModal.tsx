@@ -139,10 +139,17 @@ export default function MovieDetailsModal({ movie, isOpen, onClose }: MovieDetai
                 return (
                   <button
                     key={star}
-                    onClick={() => handleRate(star)}
+                    onClick={() => {
+                      // Click same rating to clear it
+                      if (star === movie.rating) {
+                        handleRate(0);
+                      } else {
+                        handleRate(star);
+                      }
+                    }}
                     onMouseEnter={() => setHoverRating(star)}
                     disabled={actionLoading === 'rating'}
-                    className="focus:outline-none transition-transform active:scale-90 hover:scale-125 disabled:opacity-50"
+                    className="focus:outline-none transition-transform active:scale-90 disabled:opacity-50"
                   >
                     <Star
                       size={22}
