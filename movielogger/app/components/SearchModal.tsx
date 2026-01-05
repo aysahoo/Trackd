@@ -247,6 +247,7 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
                           // Watched: show Clock (move to watch later) and Trash (delete)
                           <>
                             <button
+                              onMouseDown={(e) => e.preventDefault()}
                               onClick={() => handleUpdateStatus(itemId, 'watch_later', item.id)}
                               disabled={actionId?.id === item.id}
                               className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -255,6 +256,7 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
                               {actionId?.id === item.id && actionId?.action === 'update' ? <Spinner className="animate-spin" size={16} /> : <Clock size={16} weight="bold" />}
                             </button>
                             <button
+                              onMouseDown={(e) => e.preventDefault()}
                               onClick={() => handleDelete(itemId, item.id)}
                               disabled={actionId?.id === item.id}
                               className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -267,6 +269,7 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
                           // Watch Later: show Eye (mark as watched) and Trash (delete)
                           <>
                             <button
+                              onMouseDown={(e) => e.preventDefault()}
                               onClick={() => handleUpdateStatus(itemId, 'watched', item.id)}
                               disabled={actionId?.id === item.id}
                               className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -275,6 +278,7 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
                               {actionId?.id === item.id && actionId?.action === 'update' ? <Spinner className="animate-spin" size={16} /> : <Eyes size={16} weight="bold" />}
                             </button>
                             <button
+                              onMouseDown={(e) => e.preventDefault()}
                               onClick={() => handleDelete(itemId, item.id)}
                               disabled={actionId?.id === item.id}
                               className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -286,6 +290,7 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
                         ) : (
                           <>
                             <button
+                              onMouseDown={(e) => e.preventDefault()}
                               onClick={() => handleAdd(item, 'watched')}
                               disabled={addingId?.id === item.id}
                               className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -294,6 +299,7 @@ export default function SearchModal({ isOpen, onClose, onAdd, initialQuery = "",
                               {addingId?.id === item.id && addingId?.type === 'watched' ? <Spinner className="animate-spin" size={16} /> : <Eyes size={16} weight="bold" />}
                             </button>
                             <button
+                              onMouseDown={(e) => e.preventDefault()}
                               onClick={() => handleAdd(item, 'watch_later')}
                               disabled={addingId?.id === item.id}
                               className="p-2 squircle-mask squircle-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"

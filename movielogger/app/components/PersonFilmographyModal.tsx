@@ -194,6 +194,7 @@ export default function PersonFilmographyModal({
                     {!isInLibrary && (
                       <div className="flex items-center gap-1 self-center">
                         <button
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleAdd(credit, 'watched')}
                           disabled={addingId?.id === credit.id}
                           className="p-2 rounded-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all disabled:opacity-50"
@@ -206,6 +207,7 @@ export default function PersonFilmographyModal({
                           )}
                         </button>
                         <button
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => handleAdd(credit, 'watch_later')}
                           disabled={addingId?.id === credit.id}
                           className="p-2 rounded-lg bg-transparent text-zinc-400 dark:text-zinc-500 hover:bg-amber-100 dark:hover:bg-amber-900/30 hover:text-amber-600 dark:hover:text-amber-400 transition-all disabled:opacity-50"
