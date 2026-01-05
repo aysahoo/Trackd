@@ -1,7 +1,7 @@
 "use client";
 
 import { Movie } from "../lib/data";
-import { Clock, Eyes, Spinner, Star } from "@phosphor-icons/react";
+import { Clock, Spinner, Star } from "@phosphor-icons/react";
 import { useUpdateStatus } from "../hooks/useWatchlist";
 import { useState } from "react";
 
@@ -14,7 +14,6 @@ interface MovieCardProps {
 export default function MovieCard({ movie, view = "grid", onOpenDetails }: MovieCardProps) {
   const updateStatusMutation = useUpdateStatus();
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   const handleMarkAsWatched = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -44,18 +43,14 @@ export default function MovieCard({ movie, view = "grid", onOpenDetails }: Movie
           {movie.status === "watch_later" && (
             <button
               onClick={handleMarkAsWatched}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
               disabled={isUpdating}
-              className="absolute bottom-2 left-1/2 -translate-x-1/2 p-1.5 squircle-mask squircle-lg bg-black/50 hover:bg-emerald-600 transition-all"
+              className="group absolute bottom-2 left-1/2 -translate-x-1/2 p-1.5 squircle-mask squircle-lg bg-black/50 hover:bg-emerald-600 transition-all"
               title="Mark as Watched"
             >
               {isUpdating ? (
                 <Spinner className="animate-spin text-white" size={14} />
-              ) : isHovered ? (
-                <Eyes size={14} weight="fill" className="text-white" />
               ) : (
-                <Clock size={14} weight="fill" className="text-amber-400" />
+                <Clock size={14} weight="fill" className="text-amber-400 group-hover:text-white transition-colors" />
               )}
             </button>
           )}
@@ -83,18 +78,14 @@ export default function MovieCard({ movie, view = "grid", onOpenDetails }: Movie
       {movie.status === "watch_later" && (
         <button
           onClick={handleMarkAsWatched}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
           disabled={isUpdating}
-          className="absolute bottom-2 left-1/2 -translate-x-1/2 p-1.5 squircle-mask squircle-lg bg-black/50 hover:bg-emerald-600 transition-all"
+          className="group absolute bottom-2 left-1/2 -translate-x-1/2 p-1.5 squircle-mask squircle-lg bg-black/50 hover:bg-emerald-600 transition-all"
           title="Mark as Watched"
         >
           {isUpdating ? (
             <Spinner className="animate-spin text-white" size={14} />
-          ) : isHovered ? (
-            <Eyes size={14} weight="fill" className="text-white" />
           ) : (
-            <Clock size={14} weight="fill" className="text-amber-400" />
+            <Clock size={14} weight="fill" className="text-amber-400 group-hover:text-white transition-colors" />
           )}
         </button>
       )}
