@@ -40,7 +40,6 @@ export default function MovieDetailsModal({ movie, isOpen, onClose }: MovieDetai
     const newStatus = movie.status === 'watched' ? 'watch_later' : 'watched';
     await updateStatusMutation.mutateAsync({ tmdbId: movie.tmdbId, status: newStatus });
     setActionLoading(null);
-    onClose();
   };
 
   const handleRate = async (rating: number) => {
@@ -128,36 +127,40 @@ export default function MovieDetailsModal({ movie, isOpen, onClose }: MovieDetai
           </span>
         </div>
 
-        {/* Rating - centered, prominent */}
-        <div 
-          className="flex justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-5"
-          onMouseLeave={() => setHoverRating(null)}
-        >
-          {[1, 2, 3, 4, 5].map((star) => {
-            const isActive = hoverRating !== null ? star <= hoverRating : star <= movie.rating;
-            return (
-              <button
-                key={star}
-                onClick={() => handleRate(star)}
-                onMouseEnter={() => setHoverRating(star)}
-                disabled={actionLoading === 'rating'}
-                className="focus:outline-none transition-transform active:scale-90 hover:scale-125 disabled:opacity-50"
-              >
-                <Star
-                  size={22}
-                  weight={isActive ? "fill" : "regular"}
-                  className={`transition-all sm:!w-7 sm:!h-7 ${isActive 
-                      ? "text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.6)] duration-75"
-                      : "text-zinc-300 dark:text-zinc-600 duration-300"
-                    }`}
-                />
-              </button>
-            );
-          })}
-        </div>
+        {/* Rating - only show for watched movies */}
+        {movie.status === 'watched' && (
+          <>
+            <div 
+              className="flex justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-5"
+              onMouseLeave={() => setHoverRating(null)}
+            >
+              {[1, 2, 3, 4, 5].map((star) => {
+                const isActive = hoverRating !== null ? star <= hoverRating : star <= movie.rating;
+                return (
+                  <button
+                    key={star}
+                    onClick={() => handleRate(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    disabled={actionLoading === 'rating'}
+                    className="focus:outline-none transition-transform active:scale-90 hover:scale-125 disabled:opacity-50"
+                  >
+                    <Star
+                      size={22}
+                      weight={isActive ? "fill" : "regular"}
+                      className={`transition-all sm:!w-7 sm:!h-7 ${isActive 
+                          ? "text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.6)] duration-75"
+                          : "text-zinc-300 dark:text-zinc-600 duration-300"
+                        }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
 
-        {/* Divider */}
-        <div className="h-px bg-zinc-200 dark:bg-zinc-800 mb-3 sm:mb-4" />
+            {/* Divider */}
+            <div className="h-px bg-zinc-200 dark:bg-zinc-800 mb-3 sm:mb-4" />
+          </>
+        )}
 
         {/* Actions row */}
         <div className="flex gap-1.5 sm:gap-2">
