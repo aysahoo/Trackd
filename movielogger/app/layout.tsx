@@ -40,11 +40,6 @@ export const metadata: Metadata = {
       },
     ],
   },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "MovieLogger",
-  },
 };
 
 export default function RootLayout({
@@ -55,8 +50,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
-        <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />
         <link rel="preload" href="/white_eyes.png" as="image" />
         <link rel="preload" href="/orange_eyes.png" as="image" />
         <link rel="preload" href="/logo_light.png" as="image" />
