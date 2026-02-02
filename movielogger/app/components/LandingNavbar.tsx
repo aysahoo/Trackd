@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
@@ -12,6 +12,18 @@ interface LandingNavbarProps {
 export default function LandingNavbar({ showViewDemo = false }: LandingNavbarProps) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [mobileMenuOpen]);
 
   const handleSignInClick = async () => {
     const session = await authClient.getSession();
@@ -76,7 +88,7 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
           </button>
           <button
             onClick={handleSignInClick}
-            className="px-3 sm:px-3.5 py-2 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[14px] sm:text-[15px] font-medium"
+            className="hidden md:block px-3 sm:px-3.5 py-2 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[14px] sm:text-[15px] font-medium"
           >
             Sign in
           </button>
@@ -103,16 +115,26 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-zinc-200" style={{ backgroundColor: "rgba(250, 250, 250, 0.95)" }}>
-          <nav className="flex flex-col px-4 py-3 gap-1">
+      {/* Mobile menu modal - always rendered for fade animation */}
+      <>
+
+        
+        {/* Squircle dropdown modal */}
+        <div 
+          className={`md:hidden absolute right-4 top-full mt-2 z-50 squircle-mask squircle-2xl bg-white min-w-[200px] transition-opacity duration-300 ease-in-out ${
+            mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+          style={{ 
+            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08)"
+          }}
+        >
+          <nav className="flex flex-col p-2 gap-0.5">
             <button
               onClick={() => {
                 document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
                 setMobileMenuOpen(false);
               }}
-              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[15px] font-medium text-left"
+              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900 transition-colors duration-200 ease-in-out text-[15px] font-medium text-left"
             >
               Features
             </button>
@@ -121,7 +143,7 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
                 document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
                 setMobileMenuOpen(false);
               }}
-              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[15px] font-medium text-left"
+              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900 transition-colors duration-200 ease-in-out text-[15px] font-medium text-left"
             >
               How it works
             </button>
@@ -130,26 +152,33 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
                 document.getElementById("social")?.scrollIntoView({ behavior: "smooth" });
                 setMobileMenuOpen(false);
               }}
-              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[15px] font-medium text-left"
+              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900 transition-colors duration-200 ease-in-out text-[15px] font-medium text-left"
             >
               Social
             </button>
+            
+            {/* Divider */}
+            <div className="h-px bg-zinc-200 my-1 mx-2" />
+            
+            {showViewDemo && (
+              <button
+                className="px-3 py-2.5 squircle-mask squircle-xl bg-[#FFE8DD] text-[#FF5924] text-[15px] font-semibold hover:bg-[#FFDDD2] transition-colors duration-200 ease-in-out text-left sm:hidden"
+              >
+                View Demo
+              </button>
+            )}
             <button
-              className={`px-3 py-2.5 squircle-mask squircle-xl bg-[#FFE8DD] text-[#FF5924] text-[15px] font-semibold hover:bg-[#FFDDD2] transition-colors duration-300 ease-in-out text-left sm:hidden ${
-                showViewDemo ? "opacity-100" : "opacity-0 pointer-events-none"
-              }`}
-            >
-              View Demo
-            </button>
-            <button
-              onClick={handleSignInClick}
-              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[15px] font-medium text-left"
+              onClick={() => {
+                handleSignInClick();
+                setMobileMenuOpen(false);
+              }}
+              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900 transition-colors duration-200 ease-in-out text-[15px] font-medium text-left"
             >
               Sign in
             </button>
           </nav>
         </div>
-      )}
+      </>
     </header>
   );
 }
