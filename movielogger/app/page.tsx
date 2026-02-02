@@ -8,12 +8,12 @@ import LandingFooter from "./components/LandingFooter";
 
 export default function LandingPage() {
   const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
   const [showNavbarCta, setShowNavbarCta] = useState(false);
   const ctaRef = useRef<HTMLDivElement>(null);
 
-  const handleStartLogging = () => {
-    if (session) {
+  const handleStartLogging = async () => {
+    const session = await authClient.getSession();
+    if (session.data) {
       router.push("/app");
     } else {
       router.push("/signin");
@@ -63,10 +63,9 @@ export default function LandingPage() {
             <div ref={ctaRef} className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12 sm:mb-16 md:mb-20">
               <button
                 onClick={handleStartLogging}
-                disabled={isPending}
-                className="w-full sm:w-auto px-6 py-3 squircle-mask squircle-2xl bg-[#FF5924] text-white text-base sm:text-lg font-bold hover:bg-[#e54d1f] transition-colors duration-300 disabled:opacity-50"
+                className="w-full sm:w-auto px-6 py-3 squircle-mask squircle-2xl bg-[#FF5924] text-white text-base sm:text-lg font-bold hover:bg-[#e54d1f] transition-colors duration-300"
               >
-                {isPending ? "Loading..." : session ? "Go to App" : "Start Logging"}
+                Start Logging
               </button>
               <button className="w-full sm:w-auto px-6 py-3 squircle-mask squircle-2xl bg-[#FFE8DD] text-[#FF5924] text-base sm:text-lg font-semibold hover:bg-[#FFDDD2] transition-colors duration-300">
                 View Demo

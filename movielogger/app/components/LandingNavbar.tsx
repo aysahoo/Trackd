@@ -11,11 +11,11 @@ interface LandingNavbarProps {
 
 export default function LandingNavbar({ showViewDemo = false }: LandingNavbarProps) {
   const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleSignInClick = () => {
-    if (session) {
+  const handleSignInClick = async () => {
+    const session = await authClient.getSession();
+    if (session.data) {
       router.push("/app");
     } else {
       router.push("/signin");
@@ -76,10 +76,9 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
           </button>
           <button
             onClick={handleSignInClick}
-            disabled={isPending}
-            className="px-3 sm:px-3.5 py-2 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[14px] sm:text-[15px] font-medium disabled:opacity-50"
+            className="px-3 sm:px-3.5 py-2 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[14px] sm:text-[15px] font-medium"
           >
-            {isPending ? "Loading..." : session ? "Go to App" : "Sign in"}
+            Sign in
           </button>
 
           {/* Mobile menu button */}
@@ -147,7 +146,7 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
               disabled={isPending}
               className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[15px] font-medium text-left disabled:opacity-50"
             >
-              {isPending ? "Loading..." : session ? "Go to App" : "Sign in"}
+              Sign in
             </button>
           </nav>
         </div>
