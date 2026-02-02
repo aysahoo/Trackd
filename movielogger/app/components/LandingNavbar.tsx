@@ -27,22 +27,22 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
       className="sticky top-0 z-50"
       style={{ backgroundColor: "rgba(250, 250, 250, 0.9)", backdropFilter: "blur(10px)" }}
     >
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
         {/* Logo - Left column */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5 md:min-w-[180px]">
           <Image
             src="/logo_dark.png"
             alt="Trackd"
             width={28}
             height={28}
           />
-          <span style={{ fontSize: "18px", fontWeight: 600, color: "#757577" }} className="hidden sm:inline">
+          <span style={{ fontSize: "18px", fontWeight: 600, color: "#757577" }} className="inline">
             Trackd
           </span>
         </div>
 
         {/* Navigation - Center column (hidden on mobile) */}
-        <nav className="hidden md:flex items-center gap-2 lg:gap-3 justify-center flex-1">
+        <nav className="hidden md:flex items-center gap-2 lg:gap-3 justify-center">
           <button
             onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
             className="px-3 lg:px-3.5 py-2 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium"
@@ -64,7 +64,7 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
         </nav>
 
         {/* Actions - Right column */}
-        <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+        <div className="flex items-center gap-2 sm:gap-3 md:min-w-[180px] justify-end">
           <button
             className={`hidden sm:block px-3 sm:px-4 py-2 squircle-mask squircle-xl bg-[#FFE8DD] text-[#FF5924] text-[14px] sm:text-[15px] font-semibold hover:bg-[#FFDDD2] transition-opacity duration-300 ease-in-out ${
               showViewDemo
@@ -143,8 +143,7 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
             </button>
             <button
               onClick={handleSignInClick}
-              disabled={isPending}
-              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[15px] font-medium text-left disabled:opacity-50"
+              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[15px] font-medium text-left"
             >
               Sign in
             </button>
