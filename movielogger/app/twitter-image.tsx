@@ -45,7 +45,7 @@ export default async function Image() {
             style={{
               fontSize: "110px",
               fontWeight: 600,
-              color: "white",
+              color: "#ffffff",
             }}
           >
             Trackd
