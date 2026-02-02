@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MovieLogger - Track Your Movies & Shows",
+  title: "Trackd - Track Your Movies & Shows",
   description: "Track, discover, and share your favorite movies and TV shows with friends",
   icons: {
     icon: [

@@ -251,7 +251,7 @@ export default function MovieDetailsModal({
           {/* Notes - square button */}
           <button
             disabled={actionLoading !== null}
-            className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 squircle-mask squircle-xl flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-700 dark:hover:text-zinc-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 squircle-mask squircle-lg flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-700 dark:hover:text-zinc-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <NotePencil size={18} weight="bold" />
           </button>
@@ -260,7 +260,7 @@ export default function MovieDetailsModal({
           <button
             onClick={handleDelete}
             disabled={actionLoading !== null}
-            className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 squircle-mask squircle-xl flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 squircle-mask squircle-lg flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {actionLoading === "delete" ? (
               <Spinner className="animate-spin" size={18} />

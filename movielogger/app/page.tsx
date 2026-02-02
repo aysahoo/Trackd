@@ -1,282 +1,87 @@
 "use client";
 
-
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-
-import MovieCard from "./components/MovieCard";
-import { MediaType, Movie } from "./lib/data";
-import SearchModal from "./components/SearchModal";
-import SuggestionsModal from "./components/SuggestionsModal";
-import MovieDetailsModal from "./components/MovieDetailsModal";
 import { authClient } from "@/lib/auth-client";
-import { GoogleLogo, MagnifyingGlass, Plus, Moon, Sun, SignOut, Users, Spinner } from "@phosphor-icons/react";
-import { useTheme } from "next-themes";
-import { useWatchlist, useAddToWatchlist } from "./hooks/useWatchlist";
-import { useSuggestions, useFriends } from "./hooks/useSocial";
+import LandingNavbar from "./components/LandingNavbar";
+import LandingFooter from "./components/LandingFooter";
 
-export default function Home() {
-  const { data: session, isPending } = authClient.useSession();
+export default function LandingPage() {
   const router = useRouter();
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [activeFilter, setActiveFilter] = useState<MediaType | "All" | "Explore">("All");
+  const { data: session, isPending } = authClient.useSession();
+  const [showNavbarCta, setShowNavbarCta] = useState(false);
+  const ctaRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!isPending && !session) {
+  const handleStartLogging = () => {
+    if (session) {
+      router.push("/app");
+    } else {
       router.push("/signin");
     }
-  }, [session, isPending, router]);
-
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [initialSearchKey, setInitialSearchKey] = useState("");
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [lastViewedTime, setLastViewedTime] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem("lastViewedSuggestionTime");
-      return saved ? parseInt(saved) : 0;
-    }
-    return 0;
-  });
-
-  // All data fetches in parallel on page load
-  const { data: movies = [], isLoading: loading } = useWatchlist();
-  const { data: suggestions = [], isLoading: loadingSuggestions, refetch: refetchSuggestions } = useSuggestions();
-  const { data: friendsData, isLoading: loadingFriends, refetch: refetchFriends } = useFriends();
-
-  const addToWatchlistMutation = useAddToWatchlist();
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleAddMovie = async (movie: any) => {
-    await addToWatchlistMutation.mutateAsync(movie);
   };
-
-  const handleSignIn = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: "/",
-    });
-  };
-
-  const handleSignOut = async () => {
-    setIsLoggingOut(true);
-    await authClient.signOut();
-    window.location.reload();
-  };
-
-  const filteredMovies = activeFilter === "All"
-    ? movies
-    : movies.filter(m => m.type === activeFilter);
-
-  const filters: (MediaType | "All")[] = ["All", "Movie", "TV shows", "Anime"];
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (isSearchOpen || isSuggestionsOpen || isProfileOpen) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowNavbarCta(!entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
 
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+    if (ctaRef.current) {
+      observer.observe(ctaRef.current);
+    }
 
-      if (
-        e.key.length === 1 &&
-        !e.ctrlKey &&
-        !e.metaKey &&
-        !e.altKey &&
-        /[a-zA-Z0-9]/.test(e.key)
-      ) {
-        e.preventDefault();
-        setInitialSearchKey(e.key);
-        setIsSearchOpen(true);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isSearchOpen, isSuggestionsOpen, isProfileOpen]);
-
-
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 sm:p-8 pb-32 overflow-y-auto scrollbar-hide">
-      <SearchModal
-        isOpen={isSearchOpen}
-        onClose={() => {
-          setIsSearchOpen(false);
-          setInitialSearchKey("");
-        }}
-        onAdd={handleAddMovie}
-        initialQuery={initialSearchKey}
-        existingMovies={movies}
-      />
-      <SuggestionsModal
-        isOpen={isSuggestionsOpen}
+    <div
+      className="min-h-screen flex flex-col"
+      style={{
+        fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        backgroundColor: "#fafafa",
+      }}
+    >
+      <LandingNavbar showViewDemo={showNavbarCta} />
 
-        onClose={() => setIsSuggestionsOpen(false)}
-        suggestions={suggestions}
-        loadingSuggestions={loadingSuggestions}
-        friendsData={friendsData}
-        loadingFriends={loadingFriends}
-      />
-      <MovieDetailsModal
-        movie={movies.find(m => m.id === selectedMovie?.id) || selectedMovie}
-        isOpen={selectedMovie !== null}
-        onClose={() => setSelectedMovie(null)}
-      />
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20 lg:py-24">
+          <div className="text-center">
+            {/* Headline */}
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-semibold tracking-tight text-zinc-900 mb-6 sm:mb-8">
+              Never Lose Track of a Movie Again
+            </h1>
 
-      <header className="max-w-[1400px] mx-auto mb-10">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide min-w-0 pr-4">
-            {/* Logo - Explore view */}
-            <button
-              onClick={() => setActiveFilter("Explore")}
-              className={`flex-none w-9 h-9 squircle-mask squircle-2xl flex items-center justify-center transition-colors relative ${
-                activeFilter === "Explore"
-                  ? "bg-[#FF5924]"
-                  : "bg-[#f2f2f2] dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800"
-              }`}
-            >
-              {/* Both images rendered but only one visible - ensures instant swap */}
-              <Image
-                src="/orange_eyes.png"
-                alt="Explore"
-                width={20}
-                height={20}
-                priority
-                className={`w-5 h-5 transition-opacity ${activeFilter === "Explore" ? 'opacity-0 absolute' : 'opacity-100'}`}
-              />
-              <Image
-                src="/white_eyes.png"
-                alt="Explore"
-                width={20}
-                height={20}
-                priority
-                className={`w-5 h-5 transition-opacity absolute ${activeFilter === "Explore" ? 'opacity-100' : 'opacity-0'}`}
-              />
-            </button>
-            {filters.map((filter) => (
+            {/* Subheadline */}
+            <p className="text-base sm:text-lg md:text-xl text-zinc-500 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
+              The simple way to document your movie watching journey.
+            </p>
+
+            {/* CTA Buttons */}
+            <div ref={ctaRef} className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-12 sm:mb-16 md:mb-20">
               <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 squircle-mask squircle-2xl text-[13px] font-medium transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
-                  activeFilter === filter
-                    ? "bg-black text-white dark:bg-zinc-100 dark:text-zinc-900"
-                    : "bg-[#f2f2f2] text-zinc-600 hover:bg-gray-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
-                  }`}
+                onClick={handleStartLogging}
+                disabled={isPending}
+                className="w-full sm:w-auto px-6 py-3 squircle-mask squircle-2xl bg-[#FF5924] text-white text-base sm:text-lg font-bold hover:bg-[#e54d1f] transition-colors duration-300 disabled:opacity-50"
               >
-                {filter === "Movie" ? "Movies" : filter}
+                {isPending ? "Loading..." : session ? "Go to App" : "Start Logging"}
               </button>
-            ))}
-          </div>
-
-          {isPending ? (
-            <div className="w-9 h-9 squircle-mask squircle-2xl bg-[#f2f2f2] dark:bg-zinc-900 animate-pulse" />
-          ) : session ? (
-            <div className="relative">
-              <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="w-9 h-9 squircle-mask squircle-2xl overflow-hidden relative block hover:opacity-80 transition-opacity"
-              >
-                <img
-                  src={session.user.image || ""}
-                  alt={session.user.name || "User"}
-                  className="w-full h-full object-cover"
-                />
+              <button className="w-full sm:w-auto px-6 py-3 squircle-mask squircle-2xl bg-[#FFE8DD] text-[#FF5924] text-base sm:text-lg font-semibold hover:bg-[#FFDDD2] transition-colors duration-300">
+                View Demo
               </button>
-
-              {isProfileOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setIsProfileOpen(false)}
-                  />
-                  <div className="absolute top-full right-0 mt-2 w-48 squircle-mask squircle-2xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md p-2 z-50 flex flex-col gap-1">
-                    <button
-                      onClick={() => {
-                        setTheme(theme === 'dark' ? 'light' : 'dark');
-                        setIsProfileOpen(false);
-                      }}
-                      className="flex items-center gap-3 px-3 py-2 text-sm font-medium squircle-mask squircle-lg transition-all w-full text-left text-zinc-600 hover:bg-gray-200 dark:text-zinc-400 dark:hover:bg-zinc-800"
-                    >
-                      {resolvedTheme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-                      {resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                    </button>
-                    <button
-                      onClick={handleSignOut}
-                      disabled={isLoggingOut}
-                      className="flex items-center gap-3 px-3 py-2 text-sm font-medium squircle-mask squircle-lg transition-all w-full text-left text-red-600 hover:bg-gray-200 dark:text-red-400 dark:hover:bg-zinc-800 disabled:opacity-50"
-                    >
-                      {isLoggingOut ? <Spinner size={18} className="animate-spin" /> : <SignOut size={18} />}
-                      {isLoggingOut ? 'Logging out...' : 'Logout'}
-                    </button>
-                  </div>
-                </>
-              )}
             </div>
-          ) : (
-            <button
-              onClick={handleSignIn}
-              className="px-4 py-2 squircle-mask squircle-2xl text-[13px] font-medium bg-[#f2f2f2] text-zinc-600 hover:bg-gray-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-all duration-200 whitespace-nowrap flex items-center gap-2"
-            >
-              <GoogleLogo size={16} weight="bold" />
-            </button>
-          )}
-        </div>
-      </header>
 
-
-      <main className="max-w-[1400px] mx-auto">
-        {activeFilter === "Explore" ? (
-          // Explore view - empty for now
-          <div className="text-center py-20 text-zinc-500">
-            {/* Explore content will go here */}
+            {/* App Showcase Area - Empty placeholder */}
+            <div className="w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] squircle-mask squircle-2xl bg-zinc-100 flex items-center justify-center">
+              <p className="text-zinc-400 text-sm">App showcase placeholder</p>
+            </div>
           </div>
-        ) : loading ? (
-          <div className="flex justify-center py-20">
-            <Spinner className="animate-spin text-zinc-400" size={24} />
-          </div>
-        ) : filteredMovies.length === 0 ? (
-          <div className="text-center py-20 text-zinc-500">Your watchlist is empty. Add some movies!</div>
-        ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3">
-            {filteredMovies.map((movie) => (
-              <MovieCard key={movie.id} movie={movie} onOpenDetails={setSelectedMovie} />
-            ))}
-          </div>
-        )}
+        </section>
       </main>
 
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 flex flex-col-reverse sm:flex-row items-end sm:items-center gap-2">
-        <button
-          onClick={() => setIsSearchOpen(true)}
-          className={`w-full sm:flex-1 squircle-mask squircle-3xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md p-4 flex items-center gap-3 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-[#e5e5e5] dark:hover:bg-zinc-900 transition-all duration-300 group ${isSearchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-        >
-          <MagnifyingGlass size={20} weight="bold" className="text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors" />
-          <span className="text-[15px] font-medium grow text-left">Search</span>
-          <div className="flex items-center justify-center w-6 h-6 squircle-mask squircle-md bg-white dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500">
-            <Plus size={12} weight="bold" />
-          </div>
-        </button>
-        <button
-          onClick={() => {
-            setIsSuggestionsOpen(true);
-            const now = Date.now();
-            setLastViewedTime(now);
-            localStorage.setItem("lastViewedSuggestionTime", now.toString());
-            refetchSuggestions();
-            refetchFriends();
-          }}
-          className="relative h-[56px] w-[56px] flex-none flex items-center justify-center squircle-mask squircle-3xl bg-[#f2f2f2]/80 dark:bg-zinc-900/80 backdrop-blur-md drop-shadow-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-[#e5e5e5] dark:hover:bg-zinc-900 active:scale-95 active:bg-[#d9d9d9] dark:active:bg-zinc-800 transition-all duration-300"
-        >
-          <Users size={22} />
-
-          {suggestions.some(s => s.createdAt > lastViewedTime) && (
-            <span className="absolute top-3.5 right-3.5 w-2 h-2 bg-[#FF5924] rounded-full" />
-          )}
-        </button>
-      </div>
+      <LandingFooter />
     </div>
   );
 }

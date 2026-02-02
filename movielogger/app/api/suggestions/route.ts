@@ -86,7 +86,7 @@ export async function POST(req: Request) {
             const resend = new Resend(process.env.RESEND_API_KEY);
 
             await resend.emails.send({
-                from: "MovieLogger <info@movielogger.adasrhanatia.xyz>",
+                from: "Trackd <info@movielogger.adasrhanatia.xyz>",
                 to: recipient.email,
                 subject: `${session.user.name} suggested a ${mediaType === 'tv' ? 'TV show' : 'movie'}`,
                 html: `
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
                                 <td align="center">
                                     <div style="max-width: 480px; margin: 0 auto; background-color: #111111; padding: 24px; text-align: center;">
                                         <div style="font-size: 24px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; margin-bottom: 24px;">
-                                            MovieLogger
+                                            Trackd
                                         </div>
                                         <div style="margin-bottom: 20px;">
                                             <img src="${poster ? (poster.startsWith('http') ? poster : `https://image.tmdb.org/t/p/w500${poster}`) : 'https://movielogger.adasrhanatia.xyz/placeholder-poster.jpg'}" alt="${title}" style="width: 120px; height: 180px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
@@ -107,7 +107,7 @@ export async function POST(req: Request) {
                                             ${session.user.name} suggested a ${mediaType === 'tv' ? 'TV show' : 'movie'}
                                         </h1>
                                         <p style="font-size: 15px; color: #888888; line-height: 1.5; margin: 0 0 24px 0;">
-                                            ${session.user.name} thinks you'll like <strong>${title}</strong> (${year}). Check it out on MovieLogger.
+                                            ${session.user.name} thinks you'll like <strong>${title}</strong> (${year}). Check it out on Trackd.
                                         </p>
                                         <div>
                                             <a href="https://movie-logger-two.vercel.app/" style="background-color: #000000; color: #ffffff; padding: 12px 28px; border-radius: 9999px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-block; border: 1px solid #ffffff;">

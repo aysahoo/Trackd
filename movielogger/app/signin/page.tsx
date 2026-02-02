@@ -20,7 +20,7 @@ export default function SignInPage() {
 
     useEffect(() => {
         if (!isPending && session) {
-            router.push("/");
+            router.push("/app");
         }
     }, [session, isPending, router]);
 
@@ -28,7 +28,7 @@ export default function SignInPage() {
         setIsSigningIn(true);
         await authClient.signIn.social({
             provider: "google",
-            callbackURL: "/",
+            callbackURL: "/app",
         });
     };
 
@@ -47,7 +47,7 @@ export default function SignInPage() {
                 <div className="w-12 h-12 mb-6 relative">
                     <Image
                         src={resolvedTheme === 'dark' ? '/logo_dark.png' : '/logo_light.png'}
-                        alt="MovieLogger"
+                        alt="Trackd"
                         fill
                         className="object-contain"
                         priority

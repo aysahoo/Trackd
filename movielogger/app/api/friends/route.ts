@@ -153,9 +153,9 @@ export async function POST(req: Request) {
             const inviteLink = `https://movie-logger-two.vercel.app/`;
 
             await resend.emails.send({
-                from: "MovieLogger <info@movielogger.adasrhanatia.xyz>",
+                from: "Trackd <info@movielogger.adasrhanatia.xyz>",
                 to: email,
-                subject: "Join MovieLogger",
+                subject: "Join Trackd",
                 html: `
                     <!DOCTYPE html>
                     <html>
@@ -165,16 +165,16 @@ export async function POST(req: Request) {
                                 <td align="center">
                                     <div style="max-width: 480px; margin: 0 auto; background-color: #111111; padding: 24px; text-align: center;">
                                         <div style="font-size: 24px; font-weight: 700; color: #ffffff; letter-spacing: -0.5px; margin-bottom: 24px;">
-                                            MovieLogger
+                                            Trackd
                                         </div>
                                         <div style="margin-bottom: 20px;">
                                             <img src="${session.user.image || 'https://movielogger.adasrhanatia.xyz/placeholder-user.jpg'}" alt="${session.user.name}" style="width: 80px; height: 80px; object-fit: cover; background-color: #333333; border: 2px solid #333333;">
                                         </div>
                                         <h1 style="font-size: 20px; font-weight: 600; color: #ffffff; margin: 0 0 12px 0; letter-spacing: -0.3px;">
-                                            Join ${session.user.name} on MovieLogger
+                                            Join ${session.user.name} on Trackd
                                         </h1>
                                         <p style="font-size: 15px; color: #888888; line-height: 1.5; margin: 0 0 24px 0;">
-                                            ${session.user.name} has invited you to join MovieLogger to share movie suggestions.
+                                            ${session.user.name} has invited you to join Trackd to share movie suggestions.
                                         </p>
                                         <div>
                                             <a href="${inviteLink}" style="background-color: #ffffff; color: #000000; padding: 12px 28px; border-radius: 9999px; font-weight: 600; font-size: 14px; text-decoration: none; display: inline-block;">
