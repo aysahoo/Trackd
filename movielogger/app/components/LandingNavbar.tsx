@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
 
@@ -46,7 +47,7 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
         {/* Logo - Left column */}
-        <div className="flex items-center gap-2 sm:gap-2.5 md:min-w-[180px]">
+        <Link href="/" className="flex items-center gap-2 sm:gap-2.5 md:min-w-[180px] cursor-pointer">
           <Image
             src={isDark ? "/logo_light.png" : "/logo_dark.png"}
             alt="Trackd"
@@ -59,7 +60,7 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
           >
             Trackd
           </span>
-        </div>
+        </Link>
 
         {/* Navigation - Center column (hidden on mobile) */}
         <nav className="hidden md:flex items-center gap-2 lg:gap-3 justify-center">
@@ -74,6 +75,7 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
             Features
           </button>
           <button
+            onClick={() => router.push("/pricing")}
             className={`cursor-pointer px-3 lg:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium ${
               isDark 
                 ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
@@ -234,6 +236,10 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
               Features
             </button>
             <button
+              onClick={() => {
+                router.push("/pricing");
+                setMobileMenuOpen(false);
+              }}
               className={`cursor-pointer px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
                 isDark 
                   ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
