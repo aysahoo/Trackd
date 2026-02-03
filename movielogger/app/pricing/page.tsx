@@ -192,7 +192,7 @@ export default function PricingPage() {
                 onClick={handleGetStarted}
                 className="cursor-pointer w-full py-4 squircle-mask squircle-2xl bg-[#FF5924] text-white text-lg font-bold hover:bg-[#e54d1f] transition-colors duration-300"
               >
-                Get Started
+                Unlock Pro
               </button>
             </div>
 
