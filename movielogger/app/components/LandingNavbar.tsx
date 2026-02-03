@@ -7,9 +7,10 @@ import { authClient } from "@/lib/auth-client";
 
 interface LandingNavbarProps {
   showViewDemo?: boolean;
+  isDark?: boolean;
 }
 
-export default function LandingNavbar({ showViewDemo = false }: LandingNavbarProps) {
+export default function LandingNavbar({ showViewDemo = false, isDark = false }: LandingNavbarProps) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -36,19 +37,25 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
 
   return (
     <header
-      className="sticky top-0 z-50"
-      style={{ backgroundColor: "rgba(250, 250, 250, 0.9)", backdropFilter: "blur(10px)" }}
+      className="sticky top-0 z-50 transition-colors duration-300"
+      style={{ 
+        backgroundColor: isDark ? "rgba(10, 10, 10, 0.9)" : "rgba(250, 250, 250, 0.9)", 
+        backdropFilter: "blur(10px)" 
+      }}
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
         {/* Logo - Left column */}
         <div className="flex items-center gap-2 sm:gap-2.5 md:min-w-[180px]">
           <Image
-            src="/logo_dark.png"
+            src={isDark ? "/logo_light.png" : "/logo_dark.png"}
             alt="Trackd"
             width={28}
             height={28}
           />
-          <span style={{ fontSize: "18px", fontWeight: 600, color: "#757577" }} className="inline">
+          <span 
+            className="inline transition-colors duration-300"
+            style={{ fontSize: "18px", fontWeight: 600, color: isDark ? "#a1a1aa" : "#757577" }}
+          >
             Trackd
           </span>
         </div>
@@ -57,19 +64,31 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
         <nav className="hidden md:flex items-center gap-2 lg:gap-3 justify-center">
           <button
             onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
-            className="px-3 lg:px-3.5 py-2 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium"
+            className={`px-3 lg:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium ${
+              isDark 
+                ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                : "text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900"
+            }`}
           >
             Features
           </button>
           <button
             onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
-            className="px-3 lg:px-3.5 py-2 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium"
+            className={`px-3 lg:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium ${
+              isDark 
+                ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                : "text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900"
+            }`}
           >
             How it works
           </button>
           <button
             onClick={() => document.getElementById("social")?.scrollIntoView({ behavior: "smooth" })}
-            className="px-3 lg:px-3.5 py-2 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium"
+            className={`px-3 lg:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium ${
+              isDark 
+                ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                : "text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900"
+            }`}
           >
             Social
           </button>
@@ -78,7 +97,11 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
         {/* Actions - Right column */}
         <div className="flex items-center gap-2 sm:gap-3 md:min-w-[180px] justify-end">
           <button
-            className={`hidden sm:block px-3 sm:px-4 py-2 squircle-mask squircle-xl bg-[#FFE8DD] text-[#FF5924] text-[14px] sm:text-[15px] font-semibold hover:bg-[#FFDDD2] transition-opacity duration-300 ease-in-out ${
+            className={`hidden sm:block px-3 sm:px-4 py-2 squircle-mask squircle-xl text-[14px] sm:text-[15px] font-semibold transition-opacity duration-300 ease-in-out ${
+              isDark 
+                ? "bg-[#3d1f14] text-[#FF5924] hover:bg-[#4d2a1c]" 
+                : "bg-[#FFE8DD] text-[#FF5924] hover:bg-[#FFDDD2]"
+            } ${
               showViewDemo
                 ? "opacity-100"
                 : "opacity-0 pointer-events-none"
@@ -88,7 +111,11 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
           </button>
           <button
             onClick={handleSignInClick}
-            className="hidden md:block px-3 sm:px-3.5 py-2 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300 ease-in-out text-[14px] sm:text-[15px] font-medium"
+            className={`hidden md:block px-3 sm:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] sm:text-[15px] font-medium ${
+              isDark 
+                ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                : "text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900"
+            }`}
           >
             Sign in
           </button>
@@ -96,7 +123,11 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 squircle-mask squircle-xl text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900 transition-colors duration-300"
+            className={`md:hidden p-2 squircle-mask squircle-xl transition-colors duration-300 ${
+              isDark 
+                ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                : "text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900"
+            }`}
             aria-label="Toggle menu"
           >
             <svg
@@ -121,11 +152,14 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
         
         {/* Squircle dropdown modal */}
         <div 
-          className={`md:hidden absolute right-4 top-full mt-2 z-50 squircle-mask squircle-2xl bg-white min-w-[200px] transition-opacity duration-300 ease-in-out ${
+          className={`md:hidden absolute right-4 top-full mt-2 z-50 squircle-mask squircle-2xl min-w-[200px] transition-all duration-300 ease-in-out ${
             mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
           style={{ 
-            boxShadow: "0 10px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08)"
+            backgroundColor: isDark ? "#18181b" : "#ffffff",
+            boxShadow: isDark 
+              ? "0 10px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3)"
+              : "0 10px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08)"
           }}
         >
           <nav className="flex flex-col p-2 gap-0.5">
@@ -134,7 +168,11 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
                 document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
                 setMobileMenuOpen(false);
               }}
-              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900 transition-colors duration-200 ease-in-out text-[15px] font-medium text-left"
+              className={`px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
+                isDark 
+                  ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                  : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
+              }`}
             >
               Features
             </button>
@@ -143,7 +181,11 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
                 document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
                 setMobileMenuOpen(false);
               }}
-              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900 transition-colors duration-200 ease-in-out text-[15px] font-medium text-left"
+              className={`px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
+                isDark 
+                  ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                  : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
+              }`}
             >
               How it works
             </button>
@@ -152,17 +194,25 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
                 document.getElementById("social")?.scrollIntoView({ behavior: "smooth" });
                 setMobileMenuOpen(false);
               }}
-              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900 transition-colors duration-200 ease-in-out text-[15px] font-medium text-left"
+              className={`px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
+                isDark 
+                  ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                  : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
+              }`}
             >
               Social
             </button>
             
             {/* Divider */}
-            <div className="h-px bg-zinc-200 my-1 mx-2" />
+            <div className={`h-px my-1 mx-2 ${isDark ? "bg-zinc-700" : "bg-zinc-200"}`} />
             
             {showViewDemo && (
               <button
-                className="px-3 py-2.5 squircle-mask squircle-xl bg-[#FFE8DD] text-[#FF5924] text-[15px] font-semibold hover:bg-[#FFDDD2] transition-colors duration-200 ease-in-out text-left sm:hidden"
+                className={`px-3 py-2.5 squircle-mask squircle-xl text-[15px] font-semibold transition-colors duration-200 ease-in-out text-left sm:hidden ${
+                  isDark 
+                    ? "bg-[#3d1f14] text-[#FF5924] hover:bg-[#4d2a1c]" 
+                    : "bg-[#FFE8DD] text-[#FF5924] hover:bg-[#FFDDD2]"
+                }`}
               >
                 View Demo
               </button>
@@ -172,7 +222,11 @@ export default function LandingNavbar({ showViewDemo = false }: LandingNavbarPro
                 handleSignInClick();
                 setMobileMenuOpen(false);
               }}
-              className="px-3 py-2.5 squircle-mask squircle-xl text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900 transition-colors duration-200 ease-in-out text-[15px] font-medium text-left"
+              className={`px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
+                isDark 
+                  ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                  : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
+              }`}
             >
               Sign in
             </button>
