@@ -75,14 +75,14 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
             Features
           </button>
           <button
-            onClick={() => router.push("/pricing")}
+            onClick={() => router.push("/about")}
             className={`cursor-pointer px-3 lg:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium ${
               isDark 
                 ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
                 : "text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900"
             }`}
           >
-            Pricing
+            About
           </button>
           
           {/* Resources Dropdown */}
@@ -237,7 +237,7 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
             </button>
             <button
               onClick={() => {
-                router.push("/pricing");
+                router.push("/about");
                 setMobileMenuOpen(false);
               }}
               className={`cursor-pointer px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
@@ -246,7 +246,7 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
                   : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
               }`}
             >
-              Pricing
+              About
             </button>
             
             {/* Resources Section Label */}
