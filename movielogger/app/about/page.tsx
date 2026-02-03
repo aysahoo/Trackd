@@ -36,7 +36,7 @@ export default function AboutPage() {
               className="text-lg sm:text-xl font-medium transition-colors duration-300"
               style={{ color: isDark ? "#a1a1aa" : "#71717a" }}
             >
-              How two movie lovers built their dream app
+              We're not movie buffs, we just got tired of forgetting
             </p>
           </div>
 
@@ -59,28 +59,28 @@ export default function AboutPage() {
                 className="text-lg sm:text-xl leading-relaxed mb-6"
                 style={{ color: isDark ? "#d4d4d8" : "#3f3f46" }}
               >
-                It started with a simple frustration: <span className="font-semibold" style={{ color: isDark ? "#fafafa" : "#18181b" }}>&quot;Wait, have I watched this movie before?&quot;</span>
+                Let&apos;s be honest: <span className="font-semibold" style={{ color: isDark ? "#fafafa" : "#18181b" }}>we&apos;re not cinephiles.</span> We don&apos;t have strong opinions about directors or debate film theory. We just watch stuff.
               </p>
               
               <p 
                 className="text-lg leading-relaxed mb-6"
                 style={{ color: isDark ? "#a1a1aa" : "#52525b" }}
               >
-                We&apos;ve all been there. Scrolling through Netflix, seeing a familiar poster, trying to remember if we actually watched it or just added it to a list that disappeared into the void. Or worse — starting a movie only to realize 20 minutes in that you&apos;ve definitely seen this before.
+                But we kept running into the same problem. Someone recommends a movie. You&apos;re pretty sure you&apos;ve seen it... or did you just see the trailer? You open Netflix, stare at it for 5 minutes, and eventually just rewatch The Office instead.
               </p>
 
               <p 
                 className="text-lg leading-relaxed mb-6"
                 style={{ color: isDark ? "#a1a1aa" : "#52525b" }}
               >
-                We tried existing solutions. Letterboxd felt too social, too focused on reviews when we just wanted to track. Notes apps got messy. Spreadsheets were... well, spreadsheets. Nothing felt right.
+                We tried the existing apps. They were built for people who rate movies on a 10-point scale and write 500-word reviews. That&apos;s not us. We just wanted to mark something as "watched" and move on. Maybe save a few things to watch later without losing them in a streaming app graveyard.
               </p>
 
               <p 
                 className="text-lg leading-relaxed"
                 style={{ color: isDark ? "#a1a1aa" : "#52525b" }}
               >
-                So we built <span className="font-semibold" style={{ color: "#FF5924" }}>Trackd</span> — the movie tracker we wished existed. Simple, beautiful, and focused on what matters: remembering what you&apos;ve watched and discovering what to watch next, together with friends.
+                So we built <span className="font-semibold" style={{ color: "#FF5924" }}>Trackd</span> — for people like us. No pressure to rate everything, no social feed to keep up with. Just a simple way to remember what you&apos;ve watched and figure out what to watch next. That&apos;s it.
               </p>
             </div>
 
