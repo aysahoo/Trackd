@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Trackd
+
+A simple, no-fuss app to track what you've watched and figure out what to watch next.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## About
+
+Trackd is built for people who just want to remember what movies and TV shows they've watched—without the pressure to rate everything on a 10-point scale or write lengthy reviews.
+
+- Mark movies and shows as watched
+- Save things to watch later
+- Search through your history
+- Dark mode support
+- PWA - works on mobile
+
+## Tech Stack
+
+- **Framework**: [Next.js 16](https://nextjs.org/)
+- **Database**: [Neon](https://neon.tech/) (Serverless Postgres)
+- **ORM**: [Drizzle ORM](https://orm.drizzle.team/)
+- **Auth**: [Better Auth](https://www.better-auth.com/)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **Data**: [TMDB API](https://www.themoviedb.org/)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ or Bun
+- A Neon database
+- TMDB API key
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/aysahoo/Trackd.git
+cd Trackd
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+# or
+bun install
+```
+
+3. Set up environment variables:
+
+```bash
+cp .env.example .env
+```
+
+Fill in your database URL and TMDB API key.
+
+4. Run database migrations:
+
+```bash
+npx drizzle-kit push
+```
+
+5. Start the development server:
 
 ```bash
 npm run dev
 # or
-yarn dev
-# or
-pnpm dev
-# or
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Contributing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Contributions are welcome! Feel free to open issues or submit pull requests.
 
-## Learn More
+## Attribution
 
-To learn more about Next.js, take a look at the following resources:
+This product uses the [TMDB API](https://www.themoviedb.org/) but is not endorsed or certified by TMDB.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Team
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Ayush** - [@ayushfyi](https://x.com/ayushfyi) | [GitHub](https://github.com/aysahoo)
+- **Adarsh** - [@adarshanatia](https://x.com/adarshanatia) | [GitHub](https://github.com/Adarsha2004)
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is open source and available under the [MIT License](LICENSE).
