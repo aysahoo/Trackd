@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://movie-logger-two.vercel.app"),
+  metadataBase: new URL("https://trackd-tau.vercel.app"),
   title: "Trackd - Track Your Movies & Shows",
   description: "Track, discover, and share your favorite movies and TV shows with friends",
   openGraph: {

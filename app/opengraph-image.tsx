@@ -32,7 +32,7 @@ export default async function Image() {
         >
           {/* Logo */}
           <img
-            src="https://movie-logger-two.vercel.app/logo_light.png"
+            src="https://trackd-tau.vercel.app/logo_light.png"
             width="160"
             height="160"
             style={{
