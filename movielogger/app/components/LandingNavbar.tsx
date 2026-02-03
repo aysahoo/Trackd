@@ -13,6 +13,7 @@ interface LandingNavbarProps {
 export default function LandingNavbar({ showViewDemo = false, isDark = false }: LandingNavbarProps) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
 
   // Close mobile menu on scroll
   useEffect(() => {
@@ -64,7 +65,7 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
         <nav className="hidden md:flex items-center gap-2 lg:gap-3 justify-center">
           <button
             onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
-            className={`px-3 lg:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium ${
+            className={`cursor-pointer px-3 lg:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium ${
               isDark 
                 ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
                 : "text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900"
@@ -73,31 +74,87 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
             Features
           </button>
           <button
-            onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
-            className={`px-3 lg:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium ${
+            className={`cursor-pointer px-3 lg:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium ${
               isDark 
                 ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
                 : "text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900"
             }`}
           >
-            How it works
+            Pricing
           </button>
-          <button
-            onClick={() => document.getElementById("social")?.scrollIntoView({ behavior: "smooth" })}
-            className={`px-3 lg:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium ${
-              isDark 
-                ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
-                : "text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900"
-            }`}
+          
+          {/* Resources Dropdown */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setResourcesOpen(true)}
+            onMouseLeave={() => setResourcesOpen(false)}
           >
-            Social
-          </button>
+            <button
+              onClick={() => setResourcesOpen(!resourcesOpen)}
+              className={`cursor-pointer px-3 lg:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] lg:text-[15px] font-medium ${
+                isDark 
+                  ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                  : "text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900"
+              }`}
+            >
+              Resources
+            </button>
+            
+            {/* Dropdown Menu */}
+            <div 
+              className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 transition-all duration-200 ease-out ${
+                resourcesOpen 
+                  ? "opacity-100 translate-y-0" 
+                  : "opacity-0 -translate-y-1 pointer-events-none"
+              }`}
+            >
+              <div 
+                className="squircle-mask squircle-xl min-w-[160px]"
+                style={{ 
+                  backgroundColor: isDark ? "#18181b" : "#ffffff",
+                  boxShadow: isDark 
+                    ? "0 10px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3)"
+                    : "0 10px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08)"
+                }}
+              >
+              <div className="flex flex-col p-1.5 gap-0.5">
+                <button
+                  className={`cursor-pointer px-3 py-2 squircle-mask squircle-lg transition-colors duration-200 text-[14px] font-medium text-left ${
+                    isDark 
+                      ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                      : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
+                  }`}
+                >
+                  What&apos;s new
+                </button>
+                <button
+                  className={`cursor-pointer px-3 py-2 squircle-mask squircle-lg transition-colors duration-200 text-[14px] font-medium text-left ${
+                    isDark 
+                      ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                      : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
+                  }`}
+                >
+                  Help Center
+                </button>
+                <button
+                  className={`cursor-pointer px-3 py-2 squircle-mask squircle-lg transition-colors duration-200 text-[14px] font-medium text-left ${
+                    isDark 
+                      ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                      : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
+                  }`}
+                >
+                  FAQ
+                </button>
+              </div>
+            </div>
+            </div>
+          </div>
         </nav>
 
         {/* Actions - Right column */}
         <div className="flex items-center gap-2 sm:gap-3 md:min-w-[180px] justify-end">
           <button
-            className={`hidden sm:block px-3 sm:px-4 py-2 squircle-mask squircle-xl text-[14px] sm:text-[15px] font-semibold transition-opacity duration-300 ease-in-out ${
+            className={`cursor-pointer hidden sm:block px-3 sm:px-4 py-2 squircle-mask squircle-xl text-[14px] sm:text-[15px] font-semibold transition-opacity duration-300 ease-in-out ${
               isDark 
                 ? "bg-[#3d1f14] text-[#FF5924] hover:bg-[#4d2a1c]" 
                 : "bg-[#FFE8DD] text-[#FF5924] hover:bg-[#FFDDD2]"
@@ -111,7 +168,7 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
           </button>
           <button
             onClick={handleSignInClick}
-            className={`hidden md:block px-3 sm:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] sm:text-[15px] font-medium ${
+            className={`cursor-pointer hidden md:block px-3 sm:px-3.5 py-2 squircle-mask squircle-xl transition-colors duration-300 ease-in-out text-[14px] sm:text-[15px] font-medium ${
               isDark 
                 ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
                 : "text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900"
@@ -123,7 +180,7 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={`md:hidden p-2 squircle-mask squircle-xl transition-colors duration-300 ${
+            className={`cursor-pointer md:hidden p-2 squircle-mask squircle-xl transition-colors duration-300 ${
               isDark 
                 ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
                 : "text-zinc-500 hover:bg-[#efeff0] hover:text-zinc-900"
@@ -168,7 +225,7 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
                 document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
                 setMobileMenuOpen(false);
               }}
-              className={`px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
+              className={`cursor-pointer px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
                 isDark 
                   ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
                   : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
@@ -177,30 +234,47 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
               Features
             </button>
             <button
-              onClick={() => {
-                document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
-                setMobileMenuOpen(false);
-              }}
-              className={`px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
+              className={`cursor-pointer px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
                 isDark 
                   ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
                   : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
               }`}
             >
-              How it works
+              Pricing
+            </button>
+            
+            {/* Resources Section Label */}
+            <div className={`px-3 pt-3 pb-1 text-[12px] font-semibold uppercase tracking-wide ${
+              isDark ? "text-zinc-500" : "text-zinc-400"
+            }`}>
+              Resources
+            </div>
+            <button
+              className={`cursor-pointer px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
+                isDark 
+                  ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                  : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
+              }`}
+            >
+              What&apos;s new
             </button>
             <button
-              onClick={() => {
-                document.getElementById("social")?.scrollIntoView({ behavior: "smooth" });
-                setMobileMenuOpen(false);
-              }}
-              className={`px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
+              className={`cursor-pointer px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
                 isDark 
                   ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
                   : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
               }`}
             >
-              Social
+              Help Center
+            </button>
+            <button
+              className={`cursor-pointer px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
+                isDark 
+                  ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
+                  : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"
+              }`}
+            >
+              FAQ
             </button>
             
             {/* Divider */}
@@ -208,7 +282,7 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
             
             {showViewDemo && (
               <button
-                className={`px-3 py-2.5 squircle-mask squircle-xl text-[15px] font-semibold transition-colors duration-200 ease-in-out text-left sm:hidden ${
+                className={`cursor-pointer px-3 py-2.5 squircle-mask squircle-xl text-[15px] font-semibold transition-colors duration-200 ease-in-out text-left sm:hidden ${
                   isDark 
                     ? "bg-[#3d1f14] text-[#FF5924] hover:bg-[#4d2a1c]" 
                     : "bg-[#FFE8DD] text-[#FF5924] hover:bg-[#FFDDD2]"
@@ -222,7 +296,7 @@ export default function LandingNavbar({ showViewDemo = false, isDark = false }: 
                 handleSignInClick();
                 setMobileMenuOpen(false);
               }}
-              className={`px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
+              className={`cursor-pointer px-3 py-2.5 squircle-mask squircle-xl transition-colors duration-200 ease-in-out text-[15px] font-medium text-left ${
                 isDark 
                   ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" 
                   : "text-zinc-600 hover:bg-[#f5f5f5] hover:text-zinc-900"

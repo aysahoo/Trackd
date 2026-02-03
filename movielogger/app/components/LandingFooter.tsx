@@ -98,7 +98,7 @@ export default function LandingFooter({ isDark, toggleTheme }: LandingFooterProp
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="flex items-center gap-2 px-3 py-1.5 squircle-mask squircle-xl transition-all duration-300"
+              className="cursor-pointer flex items-center gap-2 px-3 py-1.5 squircle-mask squircle-xl transition-all duration-300"
               style={{ 
                 backgroundColor: isDark ? "#18181b" : "#f4f4f5",
                 color: isDark ? "#a1a1aa" : "#71717a"

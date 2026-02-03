@@ -71,12 +71,12 @@ export default function LandingPage() {
             <div ref={ctaRef} className="flex flex-row items-center justify-center gap-3 sm:gap-4 mb-12 sm:mb-16 md:mb-20">
               <button
                 onClick={handleStartLogging}
-                className="flex-1 sm:flex-initial px-6 py-3 squircle-mask squircle-2xl bg-[#FF5924] text-white text-base sm:text-lg font-bold hover:bg-[#e54d1f] transition-colors duration-300"
+                className="cursor-pointer flex-1 sm:flex-initial px-6 py-3 squircle-mask squircle-2xl bg-[#FF5924] text-white text-base sm:text-lg font-bold hover:bg-[#e54d1f] transition-colors duration-300"
               >
                 Start Logging
               </button>
               <button 
-                className={`flex-1 sm:flex-initial px-6 py-3 squircle-mask squircle-2xl text-[#FF5924] text-base sm:text-lg font-semibold transition-colors duration-300 ${
+                className={`cursor-pointer flex-1 sm:flex-initial px-6 py-3 squircle-mask squircle-2xl text-[#FF5924] text-base sm:text-lg font-semibold transition-colors duration-300 ${
                   isDark 
                     ? "bg-[#3d1f14] hover:bg-[#4d2a1c]" 
                     : "bg-[#FFE8DD] hover:bg-[#FFDDD2]"
@@ -129,9 +129,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 max-w-3xl mx-auto">
               {/* Track Watchlist */}
               <div className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 squircle-mask squircle-2xl bg-[#afe4ff] flex items-center justify-center mb-3">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 squircle-mask squircle-2xl bg-[#afe4ff] flex items-center justify-center mb-3">
-                </div>
+                <div className="w-14 h-14 sm:w-16 sm:h-16 squircle-mask squircle-2xl bg-[#ffe77a] flex items-center justify-center mb-3">
                 </div>
                 <span 
                   className="text-sm sm:text-base font-semibold transition-colors duration-300"
@@ -143,9 +141,7 @@ export default function LandingPage() {
 
               {/* Rate & Review */}
               <div className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 squircle-mask squircle-2xl bg-[#965aff]/20 flex items-center justify-center mb-3">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 squircle-mask squircle-2xl bg-[#965aff]/20 flex items-center justify-center mb-3">
-                </div>
+                <div className="w-14 h-14 sm:w-16 sm:h-16 squircle-mask squircle-2xl bg-[#ffb89a] flex items-center justify-center mb-3">
                 </div>
                 <span 
                   className="text-sm sm:text-base font-semibold transition-colors duration-300"
@@ -157,9 +153,7 @@ export default function LandingPage() {
 
               {/* Share with Friends */}
               <div className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 squircle-mask squircle-2xl bg-[#ffe77a] flex items-center justify-center mb-3">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 squircle-mask squircle-2xl bg-[#ffe77a] flex items-center justify-center mb-3">
-                </div>
+                <div className="w-14 h-14 sm:w-16 sm:h-16 squircle-mask squircle-2xl bg-[#afe4ff] flex items-center justify-center mb-3">
                 </div>
                 <span 
                   className="text-sm sm:text-base font-semibold transition-colors duration-300"
@@ -171,9 +165,7 @@ export default function LandingPage() {
 
               {/* Get Suggestions */}
               <div className="flex flex-col items-center text-center">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 squircle-mask squircle-2xl bg-[#00babf]/20 flex items-center justify-center mb-3">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 squircle-mask squircle-2xl bg-[#00babf]/20 flex items-center justify-center mb-3">
-                </div>
+                <div className="w-14 h-14 sm:w-16 sm:h-16 squircle-mask squircle-2xl bg-[#f5c6d6] flex items-center justify-center mb-3">
                 </div>
                 <span 
                   className="text-sm sm:text-base font-semibold transition-colors duration-300"
@@ -217,8 +209,8 @@ export default function LandingPage() {
                     { text: "Beautiful dark mode" },
                   ].map((feature, index) => (
                     <div key={index} className="flex items-center gap-3">
-                      <div className="w-8 h-8 squircle-mask squircle-xl bg-[#00babf]/20 flex items-center justify-center flex-shrink-0">
-                      <div className="w-8 h-8 squircle-mask squircle-xl bg-[#00babf]/20 flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 squircle-mask squircle-xl bg-zinc-300 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 squircle-mask squircle-xl bg-zinc-300 dark:bg-zinc-700 flex items-center justify-center flex-shrink-0">
                       </div>
                       </div>
                       <span 
@@ -321,7 +313,7 @@ export default function LandingPage() {
               </div>
 
               {/* Ratings Card */}
-              <div className="squircle-mask squircle-3xl bg-[#965aff]/20 p-5 sm:p-8 min-h-[280px] relative overflow-hidden">
+              <div className="squircle-mask squircle-3xl bg-[#ffb89a] p-5 sm:p-8 min-h-[280px] relative overflow-hidden">
                 <div className="relative z-10">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 squircle-mask squircle-xl bg-white/80 mb-4">
                     <span className="font-semibold text-zinc-700">Ratings</span>
@@ -331,13 +323,13 @@ export default function LandingPage() {
                 </div>
                 <div className="absolute bottom-4 right-4 flex gap-1">
                   {[40, 60, 35, 75, 50].map((h, i) => (
-                    <div key={i} className="w-4 squircle-mask squircle-sm bg-[#965aff]/40" style={{ height: `${h}px` }} />
+                    <div key={i} className="w-4 squircle-mask squircle-sm bg-[#ff8c5a]/60" style={{ height: `${h}px` }} />
                   ))}
                 </div>
               </div>
 
               {/* Suggestions Card - Large */}
-              <div className="lg:col-span-2 squircle-mask squircle-3xl bg-[#00babf]/20 p-5 sm:p-8 min-h-[280px] relative overflow-hidden">
+              <div className="lg:col-span-2 squircle-mask squircle-3xl bg-[#f5c6d6] p-5 sm:p-8 min-h-[280px] relative overflow-hidden">
                 <div className="relative z-10">
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 squircle-mask squircle-xl bg-white/80 mb-4">
                     <span className="font-semibold text-zinc-700">Suggestions</span>
@@ -459,7 +451,7 @@ export default function LandingPage() {
             {/* CTA Button */}
             <button
               onClick={handleStartLogging}
-              className="px-6 py-3 sm:px-8 sm:py-4 squircle-mask squircle-2xl bg-[#FF5924] text-white text-base sm:text-lg font-bold hover:bg-[#e54d1f] transition-colors duration-300 shadow-lg shadow-[#FF5924]/25"
+              className="cursor-pointer px-6 py-3 sm:px-8 sm:py-4 squircle-mask squircle-2xl bg-[#FF5924] text-white text-base sm:text-lg font-bold hover:bg-[#e54d1f] transition-colors duration-300 shadow-lg shadow-[#FF5924]/25"
             >
               Start Logging — It&apos;s Free
             </button>
