@@ -1,30 +1,34 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 
 export function useLandingTheme() {
-  const [isDark, setIsDark] = useState(false);
+  const { setTheme, theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Check localStorage for saved preference
-    const savedTheme = localStorage.getItem("landingTheme");
-    if (savedTheme === "dark") {
-      setIsDark(true);
-    } else if (savedTheme === "light") {
-      setIsDark(false);
-    } else {
-      // Check system preference
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setIsDark(prefersDark);
-    }
   }, []);
 
+  useEffect(() => {
+    if (!mounted) return;
+
+    // Migrate legacy landing theme preference to next-themes once.
+    const legacyTheme = localStorage.getItem("landingTheme");
+    if (!theme && (legacyTheme === "dark" || legacyTheme === "light")) {
+      setTheme(legacyTheme);
+    }
+
+    if (legacyTheme) {
+      localStorage.removeItem("landingTheme");
+    }
+  }, [mounted, theme, setTheme]);
+
+  const isDark = mounted && resolvedTheme === "dark";
+
   const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    localStorage.setItem("landingTheme", newTheme ? "dark" : "light");
+    setTheme(isDark ? "light" : "dark");
   };
 
   return { isDark, toggleTheme, mounted };

@@ -37,6 +37,17 @@ export default function LandingPage() {
     return () => observer.disconnect();
   }, []);
 
+  if (!mounted) {
+    return (
+      <div
+        className="min-h-screen bg-background"
+        style={{
+          fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        }}
+      />
+    );
+  }
+
   return (
     <div
       className="min-h-screen flex flex-col transition-colors duration-300"

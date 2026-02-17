@@ -9,7 +9,18 @@ import { useLandingTheme } from "../hooks/useLandingTheme";
 
 export default function AboutPage() {
   const router = useRouter();
-  const { isDark, toggleTheme } = useLandingTheme();
+  const { isDark, toggleTheme, mounted } = useLandingTheme();
+
+  if (!mounted) {
+    return (
+      <div
+        className="min-h-screen bg-background"
+        style={{
+          fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        }}
+      />
+    );
+  }
 
   return (
     <div
